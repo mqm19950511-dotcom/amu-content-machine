@@ -1,6 +1,22 @@
-# Private content — your actual material, not the system
-# Remove these lines deliberately if you want a shared corpus.
+# ─────────────────────────────────────────────────────────────
+# What's public: the framework + the clean source lists.
+# What's private: your voice, your annotations, your material.
+#
+# The convention: `*.template.md` is tracked, the working copy is not.
+# Run `./scripts/init.sh` after cloning to create working copies.
+# ─────────────────────────────────────────────────────────────
 
+# Your codified voice — the most personal thing here, and the actual engine.
+# Templates are tracked; these filled-in versions are not.
+voice/style-guide.md
+voice/voice-guide.md
+voice/content-lessons.md
+
+# Your annotations on the source lists — ⚡ marks and Read: notes are private
+# editorial judgments about named people. The clean lists stay public.
+sources/*.local.md
+
+# Your raw material and output.
 inputs/*
 !inputs/README.md
 
@@ -10,15 +26,15 @@ drafts/*
 published/*
 !published/.gitkeep
 
-# The vault holds unpublished ideas and their sources — usually private.
+# Unpublished ideas and their sources.
 vault/ideas.md
 
-# Your codified voice may contain business specifics. Uncomment to keep private:
-# voice/style-guide.md
-# voice/voice-guide.md
+# Discovery script output — regenerate with scripts/xhs_discover.mjs
+xhs_authors.json
 
 .DS_Store
 .env
+.env.local
 *.local
 
 # Local Claude Code settings

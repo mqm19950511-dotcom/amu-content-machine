@@ -19,6 +19,7 @@ The leverage is in **step 2**, not step 3. Drafting is the easy part.
 
 ```bash
 git clone <this-repo> && cd content_machine
+./scripts/init.sh        # creates your private working copies from templates
 claude
 ```
 
@@ -102,6 +103,26 @@ content_machine/
 ├── drafts/                      # one folder per piece in progress
 └── published/                   # what actually went out
 ```
+
+## What's public and what isn't
+
+This repo is designed to be forked and shared, so the split matters. Anything personal lives
+in a gitignored working copy created from a tracked template by `scripts/init.sh`.
+
+**Public** — the framework (`CLAUDE.md`, commands, agents, `personas/`, `scripts/`), the empty
+`voice/*.template.md` files, and the curated source lists in `sources/`. Those lists are public
+accounts and public engagement numbers, and they're most of what makes this repo useful to
+someone else.
+
+**Private** — your filled-in voice guides, your annotations on the source lists, and all your
+material (`inputs/`, `drafts/`, `published/`, `vault/`).
+
+The one worth understanding: `voice/voice-guide.md` is both the most personal file here and the
+engine of the whole system. It's gitignored. Its template isn't. Don't edit templates in place.
+
+Your `⚡` marks on source accounts — "this person is right but missing something" — go in
+`sources/*.local.md`, also gitignored. They're useful editorial judgments about named people,
+and they don't belong in a public repo under your name.
 
 ## Credits
 

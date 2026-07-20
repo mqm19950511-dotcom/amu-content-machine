@@ -16,17 +16,32 @@ did not supply — stop and ask instead. That is the whole system.
 
 ## Repository map
 
-| Path | What it holds |
-|---|---|
-| `voice/style-guide.md` | Who the user is, what they promote, hard constraints |
-| `voice/voice-guide.md` | Codified voice: hooks, structures, language patterns |
-| `voice/content-lessons.md` | Append-only log of mistakes the system has made |
-| `personas/interview-panel.md` | The six interviewers |
-| `personas/writers-council.md` | The six reviewers + scoring rubric |
-| `inputs/` | Raw source material for the Oracle (exports, notes, links) |
-| `vault/ideas.md` | Ranked idea backlog; unused Oracle ideas land here |
-| `drafts/` | Working drafts, one folder per piece |
-| `published/` | Final published versions, used by the lessons loop |
+| Path | What it holds | Public? |
+|---|---|---|
+| `voice/style-guide.md` | Who the user is, what they promote, hard constraints | private |
+| `voice/voice-guide.md` | Codified voice: hooks, structures, language patterns | private |
+| `voice/content-lessons.md` | Append-only log of mistakes the system has made | private |
+| `voice/*.template.md` | Empty templates these are created from | public |
+| `personas/interview-panel.md` | The six interviewers | public |
+| `personas/writers-council.md` | The six reviewers + scoring rubric | public |
+| `sources/*.md` | Curated account lists per platform | public |
+| `sources/*.local.md` | The user's ⚡ marks and private notes on those accounts | private |
+| `inputs/` | Raw source material for the Oracle (exports, notes, links) | private |
+| `vault/ideas.md` | Ranked idea backlog; unused Oracle ideas land here | private |
+| `drafts/` | Working drafts, one folder per piece | private |
+| `published/` | Final published versions, used by the lessons loop | private |
+
+## The template convention
+
+This repo is meant to be public, so anything personal lives in a gitignored working copy
+created from a tracked template. `scripts/init.sh` creates them; it never overwrites.
+
+**Always read and write the working copy** (`voice/voice-guide.md`), never the template. If a
+working copy is missing, run `scripts/init.sh` rather than editing the template in place —
+editing the template pushes the user's private content to GitHub on their next commit.
+
+Same for sources: `sources/x-accounts.md` is the shareable list, `sources/x-accounts.local.md`
+holds the user's private read on those accounts. Read both; write annotations only to `.local`.
 
 ## The six steps
 

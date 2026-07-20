@@ -9,8 +9,8 @@ consensus worth breaking, and threads where your angle is missing.
 | File | Platform | How it gets scanned |
 |---|---|---|
 | `x-accounts.md` | X | `/scan` via browser, or manual paste |
-| `substacks.md` | Substack | `/scan` via RSS — most reliable of the three |
-| `rednote.md` | 小红书 / RedNote | Manual capture only — see below |
+| `substacks.md` | Substack | `/scan` via RSS — free, no auth |
+| `rednote.md` | 小红书 / RedNote | `/scan` via TikHub API — $0.001/request |
 
 ## Scanning reality check
 
@@ -26,10 +26,16 @@ built. Practical advice: **make an X List** with your AI accounts rather than re
 algorithmic timeline. A List is chronological, complete, and scrapeable in one page. The
 timeline is none of those things.
 
-**RedNote is hard.** No public API, aggressive anti-scraping, and content is largely images
-with text baked in. There is no reliable automation here. Treat it as manual: when you see a
-post worth responding to, screenshot it into `inputs/saved/` with a line about why. That line
-matters more than the screenshot — it's the actual content spike.
+**RedNote is easy but metered.** No public API, but TikHub proxies it — search returns title,
+description, author, and engagement in one call at $0.001/request. `scripts/xhs_discover.mjs`
+built the creator list in `rednote.md` this way: 20 keywords, 400 notes, 344 creators, $0.02.
+
+Two constraints that will bite you: the API 429s aggressively (pace at ~4s between calls), and
+keywords cannot contain spaces (`AI产品经理` works, `AI 产品经理` returns HTTP 400).
+
+Manual capture still has a place. When you screenshot a post into `inputs/saved/`, write one
+line about *why* — that reaction is a content spike, and it's higher-signal than anything the
+API returns.
 
 ## Curation principle
 

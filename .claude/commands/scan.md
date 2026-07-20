@@ -51,10 +51,31 @@ Write to `inputs/external/x-YYYY-MM-DD.md`.
 asking the user to paste. Don't retry more than twice — this is a known failure mode, not
 something to grind on.
 
-## RedNote
+## RedNote — TikHub API
 
-Not automatable. Read `sources/rednote.md`. Just check whether anything new landed in
-`inputs/saved/` and note it for the Oracle. Don't attempt to scrape.
+Automatable via TikHub's `xiaohongshu/app_v2/search_notes`. $0.001/request.
+
+```bash
+node scripts/xhs_discover.mjs
+```
+
+That's the **discovery** pass — it finds *creators* and is meant to run quarterly, not daily.
+Re-running it every scan wastes calls and returns the same people.
+
+For a **content** scan, search the beats directly rather than re-ranking authors. Same
+endpoint, same two constraints that apply everywhere here:
+
+- Pace at ~4s between calls. TikHub 429s hard; without sleeps most calls fail.
+- Keywords must have no spaces — `AI产品经理` works, `AI 产品经理` returns HTTP 400.
+
+Capture per note: title, desc, author, 赞/藏 counts, and **whether the user would have a
+different take**. Write to `inputs/external/xhs-YYYY-MM-DD.md`.
+
+Note that 藏 (saves) is the more meaningful metric on this platform — it signals "I'll come
+back to this," where 赞 is closer to a scroll-by reflex. Rank by saves.
+
+Also fold in anything new in `inputs/saved/` — manual screenshots still carry the user's own
+reaction, which is higher-signal than anything the API returns.
 
 ## Output
 

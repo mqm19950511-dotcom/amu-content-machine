@@ -1,93 +1,123 @@
 # 小红书 / RedNote Sources
 
-**Manual capture only.** There's no reliable automation here, and it's better to know that
-than to build a scraper that breaks silently.
+**Status: automatable.** Earlier versions of this file said manual-only — that was wrong.
+TikHub's `xiaohongshu/app_v2/search_notes` endpoint works, costs **$0.001/request**, and
+returns title, description, author, and engagement in one call.
 
-## Why this one is different
+The list below is **not hand-curated or guessed** — it's the output of
+`scripts/xhs_discover.mjs`, which searched 20 AI-related keywords, collected 400 notes from
+344 creators, and ranked by how many distinct keywords each creator surfaced in. Appearing
+under multiple keywords is the signal that matters: it separates durable voices from one-hit
+viral posts.
 
-No public API. Aggressive anti-scraping and login walls. Most content is images with text
-baked in, so even successful scraping returns pictures, not words.
+Re-run it quarterly. Total cost per run: **$0.02**.
 
-So: manual. But see the workaround below — for the creators who matter most, you may not
-need RedNote at all.
-
----
-
-## 张咋啦 / Zara Zhang — the anchor account
-
-**She is one person across three platforms.** Worth stating plainly since the names look
-unrelated:
-
-| Platform | Identity | Automatable |
-|---|---|---|
-| 小红书 | 张咋啦 — 2万 → 18万 followers, ~500 posts | ✗ |
-| X | [@zarazhangrui](https://x.com/zarazhangrui) | ✓ |
-| Substack | [Zara's Newsletter](https://zarazhang.substack.com/) | ✓ RSS |
-| GitHub | [zarazhangrui](https://github.com/zarazhangrui) | ✓ |
-
-**Background:** Harvard '17, psychology. The Information (reporter) → GGV Capital (analyst) →
-ByteDance (product marketing, then new AI products). Built [LongCut](https://www.longcut.ai/)
-— turns long videos into topic-driven learning — nights and weekends, via vibe coding, with no
-traditional engineering background.
-
-**Why she's the right anchor for your list:** her whole beat is the non-technical person
-becoming AI-capable. She grew 2万→18万 on 小红书 by documenting that transition rather than
-by having credentials. If your angle is AI-for-normal-people rather than AI-for-engineers,
-she has already run the experiment you're running.
-
-**Her stated principles**, worth arguing with rather than just adopting:
-- 关注产品人，不关注媒体人 — follow product people, not media people
-- Only recommend AI products you deeply use yourself
-- 只要掌握信息源，中国和硅谷没有信息差
-- 想做 AI 相关的工作，可以从使用 AI 工具开始"蹭 AI"
-
-### The workaround
-
-**Track her on X and Substack instead.** The same thinking appears there in scrapeable form,
-and both are already in `sources/x-accounts.md` and `sources/substacks.md`. RedNote becomes
-optional bonus rather than a maintenance burden.
-
-This generalizes: for any creator posting to both RedNote and X/Substack, track the
-automatable platform. Reserve manual capture for RedNote-only voices.
-
-### Also worth reading, not just following
-
-- **[follow-builders](https://github.com/zarazhangrui/follow-builders)** (~5.7k stars) — her
-  open-source AI builders digest, monitoring X and YouTube podcasts. This is the Oracle's
-  external half, already built. Read it before investing further in `/scan`.
-- **[frontend-slides](https://github.com/zarazhangrui/frontend-slides)** (~25k stars) — you
-  already have this installed as a Claude Code skill.
-- **codebase-to-course** — another Claude Code skill of hers.
+Profile URLs: `https://www.xiaohongshu.com/user/profile/<id>`
 
 ---
 
-## The manual workflow, for RedNote-only creators
+## The anchor: 张咋啦 / Zara Zhang
 
-When you see a post worth responding to:
+`59757acd50c4b45e6e9a90df` — 3 keywords, 7 posts, **50.7k 赞 / 56.6k 藏**
 
-1. Screenshot it into `inputs/saved/`
-2. **Write one line about why you saved it**
+Second-highest engagement in the entire scan and the only creator whose posts are about the
+*content system itself* rather than just AI tools. Her recent titles:
 
-That second step is the whole thing. The Oracle doesn't need the post — it needs *your
-reaction to* the post. "Saved because she's right about AI PM roles but wrong that it's a
-China-only phenomenon" is a content spike. A bare screenshot is not.
+- 文科生才是 vibe coding 最大的受益者
+- **如何一年在Twitter涨粉7万：我做内容的方法** ← read this one first
+- 30分钟完整版：4个可以落地的AI原生工作方式
+- 把 Claude Code 接入飞书，太爽了！教程+演示
+- 近期让我眼前一亮的4个AI产品
 
-Slower than RSS, better ideas per item, because the filtering already happened in your head.
+**One person, four platforms:** 小红书 张咋啦 · X [@zarazhangrui](https://x.com/zarazhangrui) ·
+[Substack](https://zarazhang.substack.com/) · [GitHub](https://github.com/zarazhangrui).
+Harvard '17 psychology → The Information → GGV → ByteDance. Built [LongCut](https://www.longcut.ai/)
+by vibe coding with no engineering background. Also wrote
+[follow-builders](https://github.com/zarazhangrui/follow-builders) — an open-source AI builders
+digest that is essentially this system's Oracle, already built.
 
-## Add creators
+Her stated principles, worth arguing with rather than adopting wholesale:
+关注产品人不关注媒体人 · only recommend products you deeply use · 只要掌握信息源，中国和硅谷没有信息差
 
-| Handle | Who | Why | Also on |
+---
+
+## Highest signal — 3+ keywords
+
+| Creator | ID | Keywords | 赞/藏 | Beat |
+|---|---|---|---|---|
+| 里昂说AI | `69120fe4000000003700b048` | 4 | 81.8k / 161k | Top engagement in the whole scan. Codex, AI tooling, beginner-accessible. |
+| 张咋啦 | `59757acd50c4b45e6e9a90df` | 3 | 50.7k / 56.6k | See above |
+| 帽米星CapriceS | `5bde53546ac94f000190fa2b` | 3 | 1.4k / 1.8k | Indie building + monetization. Ships and reports numbers. |
+| 🐸阿蛙学AI | `60c1e0cb000000000101c977` | 3 | — | GEO, getting AI to recommend your product. Niche and practical. |
+
+## Vibe coding / building
+
+The richest vein for your angle — people documenting real workflows, not tool roundups.
+
+| Creator | ID | 赞/藏 | Why |
 |---|---|---|---|
-| 张咋啦 | Zara Zhang — AI + 文科生 angle | See above | X, Substack ← track there |
-| | | | |
+| 石不敢当 | `65380914000000000301de27` | 9.5k / 12.1k | 每天vibe coding7小时这是我的完整工作流 — a real documented process |
+| 流心小蛋挞 | `5a4e4cb94eacab045467736e` | 6.6k / 7.0k | 0基础vibe coding，3天上线第一个网站 |
+| 麻省理工长毛兔 | `5ebb39850000000001007441` | 6.7k / 8.2k | 当普通人用"AI杠杆"放大自己能创造的价值 |
+| 老A的AI研究所 | `6355eca2000000001901e148` | 2.6k / 3.2k | Long-form Vibe Coding and Agent tutorials |
+| John Wayne | `54e9dff9b4c4d642702faf7a` | 1.4k / 1.0k | 深度使用三个月，Claude Code最佳实践 — you use Claude Code |
+| 童蒙l53 | `67544304000000000800834e` | 930 / 464 | 我用了3个月Claude Code后，终于不再焦虑了 |
 
-## What RedNote is uniquely good for
+## 文科生 / career transition
 
-Worth the manual effort specifically for:
+Your stated angle. Consistently high save-rates — people bookmark these.
 
-- **Chinese-market AI product takes** that never surface on English X
-- **The 职场 / career-transition angle** on AI — a much bigger conversation there than on X
-- **Consumer AI adoption** — RedNote discusses *using* these tools where X discusses building them
+| Creator | ID | 赞/藏 | Why |
+|---|---|---|---|
+| 樱桃小丸纸 | `699d2f1f000000001d000496` | 5.6k / 4.5k | 推荐所有文科生转行AI产品 (+ 续集) |
+| Alex-88 | `5f4220aa0000000001001eb2` | 9.1k / 5.9k | 现在做AI Agent 约等于2020年做自媒体 — strong framing to push against |
+| 今天不吃鱼 | `6801bcd4000000000e01c40c` | 2.5k / 4.6k | 奉劝跳槽想进AI应用开发的别太相信Xhs — contrarian about the platform itself |
+| 烦死了这破deck | `680dc928000000000e02eeb0` | 3.0k / 3.3k | 北美 AI 转型consulting, ex-MBB. Specific and unglamorous. |
 
-If your angle is AI-for-normal-people, this is the highest-value list in the folder despite
-being the most annoying to maintain.
+## 硅谷 / 出海
+
+| Creator | ID | 赞/藏 | Why |
+|---|---|---|---|
+| 硅谷AI投资Hannah | `5970639c6a6a697577c7987b` | 1.1k / 1.2k | 硅谷打工人最值得加入的AI Startup — concrete company lists |
+| Mira的出海观察 | — | 12.9k / 20.8k | Highest save-rate on a single vibecoding post in the scan |
+| 阿西_出海 | `576b483634609431150d43cb` | 554 / 535 | Bridges X discourse into 小红书 — direct overlap with your X list |
+| 硅谷出海数据增长Carrie | `5bd9af2e1cbb180001540eef` | 1.2k / 991 | Cross-border growth |
+| Apcorn椰子 | `54e5e44ae77989360ae239d8` | 544 / 466 | 挑战靠AI创业公司赚一百万美元 — build-in-public vlog |
+
+## AI 产品经理
+
+Dense niche, mostly interview-prep and 转行 content. Lower ceiling but high intent.
+
+| Creator | ID | 赞/藏 | Why |
+|---|---|---|---|
+| AI产品阿豪 | `59850e2850c4b47ddd4668d3` | 2.6k / 2.3k | 每天拆解一个AI产品 — daily teardown series |
+| Elaine产品观察 | `6a0529580000000002001001` | 2.8k / 2.0k | 每天认识一个AI产品：Codex / Cursor |
+| 亚慧是个宝藏AI产品经理 | — | 1.6k / 2.3k | AI PM面试四个问题判断你的vibe coding能力 |
+| 小虎柴柴 | — | 1.1k / 1.3k | 法学生在这个时代最大的红利：ai |
+
+---
+
+## Re-running discovery
+
+```bash
+node scripts/xhs_discover.mjs          # ~2 min, $0.02
+```
+
+Reads `TIKHUB_API_KEY` from `../wdyt/.env.local`. Edit the `KEYWORDS` array to change beats.
+
+**Rate limiting is real:** the API 429s aggressively. The script paces at 4s between calls
+with exponential-backoff retry. Without pacing, 15 of 20 calls fail — don't remove the sleeps.
+
+**Keywords must not contain spaces.** `AI产品经理` works; `AI 产品经理` returns HTTP 400.
+
+## Caveat on this list
+
+Ranked by keyword-breadth and engagement, which is a proxy for *reach*, not for *quality* or
+*fit with your angle*. The scan cannot tell you who is worth arguing with — that's your call.
+Read a few posts from each before committing, and mark `⚡` on the ones where you think
+"right, but they're missing something." The Oracle weights those up, and they generate better
+ideas than the highest-engagement accounts. Put those marks in
+`sources/rednote.local.md` — gitignored, unlike this file.
+
+Search-result rank also skews toward beginner-facing content, since that's what gets saved.
+The sharpest practitioners may rank lower here than they deserve.

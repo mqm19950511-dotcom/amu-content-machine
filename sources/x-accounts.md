@@ -29,6 +29,10 @@ real numbers to 3k followers are where a reply gets seen and where your angle is
 Weight accordingly. The ⚡ column marks accounts where you regularly think *"right, but they're
 missing something"* — those generate the best ideas, and they're rarely the famous ones.
 
+**Put your ⚡ marks in `sources/x-accounts.local.md`, not here.** This file is public; the
+local one is gitignored. Your private read on who's wrong about what shouldn't ship to GitHub
+under your name. `/scan` and `/oracle` read both.
+
 ---
 
 ## Builders — highest priority
@@ -53,7 +57,7 @@ accounts that will generate ideas you can add to.
 |---|---|---|---|
 | @karpathy | Andrej Karpathy | Explains hard things clearly. Low frequency, high signal. | |
 | @jeremyphoward | Jeremy Howard, answer.ai | Practical, accessible, anti-hype. | |
-| @fchollet | François Chollet | ARC-AGI; skeptic on LLM reasoning. Reliable counterweight to lab optimism. | ⚡ |
+| @fchollet | François Chollet | ARC-AGI; skeptic on LLM reasoning. Reliable counterweight to lab optimism. | |
 
 ## Content / creator craft
 
