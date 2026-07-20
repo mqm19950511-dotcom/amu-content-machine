@@ -1,0 +1,22 @@
+# Private content — your actual material, not the system
+# Remove these lines deliberately if you want a shared corpus.
+
+inputs/*
+!inputs/README.md
+
+drafts/*
+!drafts/.gitkeep
+
+published/*
+!published/.gitkeep
+
+# The vault holds unpublished ideas and their sources — usually private.
+vault/ideas.md
+
+# Your codified voice may contain business specifics. Uncomment to keep private:
+# voice/style-guide.md
+# voice/voice-guide.md
+
+.DS_Store
+.env
+*.local
