@@ -32,11 +32,15 @@ story." "Product mentions only when the post is already about the problem it sol
 
 ## Platforms
 
-| Platform | Length | Format notes | Cadence |
-|---|---|---|---|
-| LinkedIn | <e.g. 150-250 words> | <e.g. short paragraphs, no hashtags, hook in first 2 lines before the fold> | <e.g. 3x/week> |
-| X | <e.g. single post or 5-7 post thread> | <notes> | <cadence> |
-| Newsletter | <e.g. 800-1200 words> | <notes> | <cadence> |
+**Primary platform: X.** Drafts default to X unless told otherwise; the Writer's Council
+scores against X norms.
+
+| Platform | Priority | Length | Format notes | Cadence |
+|---|---|---|---|---|
+| X | **primary** | <single post ~50-280 chars, or 5-7 post thread> | <hook must work standalone in the feed; first line carries everything; threads need a payoff post, not a trailing "that's it"> | <e.g. daily> |
+| X replies | secondary | <1-3 sentences> | <response opportunities from `/oracle`; add an angle, never just agree> | <e.g. 5x/day> |
+| Substack | <if used> | <800-1200 words> | <notes> | <cadence> |
+| 小红书 | <if used> | <notes — image-first, text baked into visuals> | <notes> | <cadence> |
 
 ## Hard constraints
 

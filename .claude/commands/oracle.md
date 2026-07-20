@@ -24,10 +24,20 @@ Split the scan two ways, roughly half and half:
 - A decision they made and explained
 - Something they argued about
 
-**External opportunities** — things happening in their world worth responding to:
+**External opportunities** — things happening in their world worth responding to.
+
+Read `inputs/external/` for scan results. If it's empty or older than ~3 days, run `/scan`
+first — the external half is half the Oracle's value and a stale scan produces stale ideas.
+The source lists live in `sources/`.
+
 - Posts from accounts they follow that they'd have a different take on
 - A consensus view in their space that they'd push back on
 - News in their industry where their credibility anchors give them standing
+
+**Weight builders over influencers.** A post from a 3k-follower founder shipping something
+real is a far better response opportunity than a post from a lab CEO — the CEO's replies are
+already ten thousand deep and the user's take won't surface. Rank accordingly, and weight
+`⚡`-marked sources up: those are the ones the user reliably disagrees with.
 
 ## Step 2: Rank
 
