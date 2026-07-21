@@ -139,7 +139,12 @@ if (fs.existsSync(path.join(root, 'xhs_authors.json'))) {
     subLandscape: readIf('analysis/sub-landscape.json'),
     x: xCreators,
     sub: subCreators,
-    vault: readIf('vault/vault.json'),
+    vault: (() => {
+      const v = readIf('vault/vault.json');
+      const q = readIf('vault/interview-questions.json');
+      if (v && q) v.ideas.forEach((idea, i) => { idea.questions = q[String(i)] || []; });
+      return v;
+    })(),
     meta: {
       creators: creators.length,
       notes: creators.reduce((s, c) => s + c.hits, 0),
