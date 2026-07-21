@@ -14,6 +14,98 @@ beat 50 you don't. Set `Read:` to `always` / `sometimes` / `never` after a few w
 
 ---
 
+## Your follows (from the Substack app)
+
+Transcribed from your Following list. Grouped by theme. RSS feeds derived where the slug is
+obvious; `?` means look it up before adding to `/scan` (the person's name isn't always the
+publication slug). Prune this hard — a following list is not a reading list.
+
+**AI / research / eng**
+| Publication | Author | Feed |
+|---|---|---|
+| Dr. Fei-Fei Li | Fei-Fei Li | ? |
+| Andrej's Substack | Andrej Karpathy | ? |
+| Chip's Substack | Chip Huyen | `huyenchip.substack.com/feed` ? |
+| ByteByteGo Newsletter | Alex Xu | `blog.bytebytego.com/feed` |
+| The Pragmatic Engineer | Gergely Orosz | `newsletter.pragmaticengineer.com/feed` |
+| SemiAnalysis | — | `semianalysis.com/feed` |
+| Graph Machine Learning | Sergey Ivanov | ? |
+| The AI Corner | Ruben Dominguez | ? |
+| The AI Advantage | — | ? |
+| Nonlinear News | Hannah Zhang | ? |
+| Rational in the Fullness of Time | Alexandr Wang | ? |
+| Beff's Newsletter | Beff Jezos | ? |
+
+**VC / startups / tech strategy**
+| Publication | Author | Feed |
+|---|---|---|
+| Big Technology | Alex Kantrowitz | `bigtechnology.com/feed` |
+| The Generalist | Mario Gabriele | `generalist.com/feed` ? |
+| Dwarkesh Podcast | Dwarkesh Patel | `dwarkesh.com/feed` ? |
+| Stratechery-adjacent — David Sacks | David Sacks | ? |
+| Marc Andreessen Substack | Marc Andreessen | ? |
+| a16z / a16z New Media | a16z | ? |
+| Elad Blog | Elad Gil | ? |
+| Ben Horowitz | Ben Horowitz | ? |
+| Paul Graham | Paul Graham | ? |
+| Peter Thiel | Peter Thiel | ? |
+| Chamath Palihapitiya | Chamath | ? |
+| Naval | Naval Ravikant | ? |
+| Stanford GSB on Startups | Ilya Strebulaev | ? |
+| Venture Capital Archive | — | ? |
+| Polymath Investor | — | ? |
+| The Business Model | Prasun Samanta | ? |
+| The Sweaty Startup | Nick Huber | ? |
+| Growth Notes | Sandy Diao | ? |
+
+**Writing / craft / positioning**
+| Publication | Author | Feed |
+|---|---|---|
+| Lenny's Newsletter | Lenny Rachitsky | `lennysnewsletter.com/feed` |
+| Positioning | April Dunford | ? |
+| The Shit No One Tells You About Writing | — | ? |
+| Writing Club | — | ? |
+| How to Write (and Edit) a Book | Abigail Fenton | ? |
+| the saturday essay | Justin Welsh | ? |
+| Useful Fictions | Cate Hall | ? |
+| Escaping Flatland | Henrik Karlsson | `henrikkarlsson.xyz/feed` ? |
+| Sasha's Newsletter | Sasha Chapin | ? |
+| Minor Edits | Melis Ugurlu | ? |
+| Pen Name Consulting | — | ? |
+
+**Branding / marketing / creator**
+| Publication | Author | Feed |
+|---|---|---|
+| The Branding Blackbook | — | ? |
+| The Art of Branding | Alina Sosnina | ? |
+| The Brand Waves (+ Italia) | — | ? |
+| The Case by Pretty Little Marketer | sophie | ? |
+| The CMO Brief | Jayme Washington | ? |
+| Screenshot This | Zara Wong | ? |
+| a good omen | Carly Valancy | ? |
+| Bestfolios | — | ? |
+
+**Personal / life / culture**
+| Publication | Author | Feed |
+|---|---|---|
+| @jasmine's substack | Jasmine Sun | ? |
+| The Nightstand | Avery Liu (you) | — |
+| cultural memory | Naomi May | ? |
+| the stories club | lina | ? |
+| The Culturist | — | ? |
+| sleepy tofu | rae 睿恩 | ? |
+| Letters from the Old World | Evan Amato | ? |
+| Cat's Newsletter | Cat Wu | ? |
+| Good Work | mallory contois | ? |
+| Apple Falls Far From The Tree | Tiffany Tan | ? |
+| Everything is wuwu | Valeria | ? |
+| no worries if not | austyn mccall | ? |
+| The Open Letters | — | ? |
+| Intersection | Andrew Sorohan | ? |
+| Cabin Nine | — | ? |
+
+---
+
 ## AI + humanities / career angle
 
 | Publication | Author | Feed | Why | Read |

@@ -35,21 +35,67 @@ under your name. `/scan` and `/oracle` read both.
 
 ---
 
-## Builders — highest priority
+## 25 AI Builders — 张咋啦's curated list
 
-People shipping AI products and posting about actual decisions.
+Transcribed from her infographic ("Follow Builders, Not Influencers — X上最推荐关注的25位顶级
+AI Builders"). This is the authoritative version of the list, from someone whose whole beat is
+this. She's #19 in her own list.
+
+| # | Handle | Who |
+|---|---|---|
+| 1 | @karpathy | ex-OpenAI/Tesla, Eureka Labs, AI education |
+| 2 | @swyx | AI Engineer coiner, Latent Space podcast |
+| 3 | @joshwoodward | Google Labs VP, Gemini App & AI Studio |
+| 4 | @kevinweil | ex-OpenAI CPO, ex-Instagram/Twitter product |
+| 5 | @petergyang | Roblox product lead, *Behind the Craft* (125k readers) |
+| 6 | @thenanyu | Linear Head of Product |
+| 7 | @realmadhuguru | Google Gemini product lead, "fast build" culture |
+| 8 | @AmandaAskell | Anthropic philosopher, shapes Claude's persona |
+| 9 | @_catwu | Anthropic Claude Code product lead |
+| 10 | @trq212 | Anthropic Claude Code engineer, deep Agent practice |
+| 11 | @GoogleLabs | Google's official AI experiments account |
+| 12 | @amasad | Replit CEO |
+| 13 | @rauchg | Vercel CEO, Next.js |
+| 14 | @alexalbert__ | Anthropic Claude team PM |
+| 15 | @levie | Box CEO, enterprise-AI commentary |
+| 16 | @ryolu_ | Cursor Head of Design, ex-Notion/Stripe |
+| 17 | @garrytan | Y Combinator CEO |
+| 18 | @mattturck | AI investor, MAD Podcast |
+| 19 | @zarazhangrui | Zara Zhang / 张咋啦 — follow-builders author, your anchor |
+| 20 | @nikunj | FPV Ventures partner, AI-era SaaS |
+| 21 | @steipete | iOS/macOS dev legend, now AI dev tools |
+| 22 | @danshipper | Every founder, *AI & I* podcast |
+| 23 | @adityaag | South Park Commons GP, ex-Dropbox CTO |
+| 24 | @sama | OpenAI CEO |
+| 25 | @mumaren_2 | 木马人 — big-tech veteran, AI knowledge sharing |
+
+Also seen in your saved profiles: @emollick (Ethan Mollick, One Useful Thing), @venturetwins
+(Justine Moore, a16z), @gregisenberg (internet businesses), @lennysan (Lenny), @GabrielPeterss4
+(OpenAI research).
+
+## Design engineers — via @dhruvtwt_
+
+Two curated grids ("My Favourite Design Engineers on X", Parts 1 & 2). Relevant because you
+vibecode and frontend-slides is your top repo. Part 2 is the stronger, more senior list.
+
+**Part 2 (elite):** @shadcn, @antfu7, @emilkowalski, @jh3yy, @pacocoursey, @shuding, @aidenybai,
+@evilrabbit_, @rauchg-adjacent @pbakaus, @DanHollick, @joshpuckett, @gunnargray, @danilowoz,
+@praveenjuge, @pugson, @remvze, @sorenblank, @raphaelsalaja, @jakubkrehel, @benjitaylor,
+@jamesvclements, @connorhpbrn, @dominikmartn, @darylginn, @toddham, @henryheffernan, @Nomandsign,
+@designerdada, @Gavmn, @ItsPeterDesign, @AdityaSur11, @aaronmahlke, @alien69, @dwhitedesign,
+@Jakubantalik, @AnaArsonist, @arlanoska, @iamncdai, @_heyrico, @connorhpbrn, @aidenybai
+
+**Part 1:** @divv919, @writenicecode, @piyushsphere, @mannupaaji, @diip3sh, @zzzzshawn,
+@10xshivam, @rohitmehta_twt, @userAdityaa, @kail_designs, @mihirtwt, @samirande_, @Prasanjit_ui,
+@saurra3h, @sahilcodex, @Abhinavstwt, @dhruvtwt_
+
+## Builders you follow directly
 
 | Handle | Who | Why | ⚡ |
 |---|---|---|---|
-| @zarazhangrui | Zara Zhang / 张咋啦 | Non-technical → AI PM → founder. Builds LongCut. Your closest analogue and cross-platform anchor (X + Substack + 小红书). | |
-| @simonw | Simon Willison | Documents real experiments, tooling quirks, API behavior. The most consistently practical account in AI. | |
-| @levelsio | Pieter Levels | Solo builder, anti-VC, posts revenue. Strong opinions worth pushing against. | |
+| @simonw | Simon Willison | Documents real experiments, tooling quirks, API behavior. | |
+| @levelsio | Pieter Levels | Solo builder, anti-VC, posts revenue. Worth pushing against. | |
 | @AravSrinivas | Aravind Srinivas, Perplexity | Ships loudly, argues publicly. | |
-| @swyx | Shawn Wang, Latent Space | Synthesizes the ecosystem; good for spotting what's *underdiscussed*. | |
-
-**This section should be your longest and it currently isn't.** Add the sub-10k builders in
-your niche — the ones posting real numbers about products you actually use. Those are the
-accounts that will generate ideas you can add to.
 
 ## Researchers / educators — for "explain this well" takes
 

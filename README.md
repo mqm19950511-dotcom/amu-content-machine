@@ -15,6 +15,36 @@ you've said something worth publishing, then structures what you actually said.
 
 The leverage is in **step 2**, not step 3. Drafting is the easy part.
 
+## Two halves: intelligence + creation
+
+This repo grew a second half — a **source-intelligence dashboard**. Give it a 小红书 ID (plus
+optional X handles and Substack feeds) and it pulls, analyzes, and visualizes:
+
+- **Your own content** — every post with engagement, auto-categorized, trend charts, and an
+  AI content analysis (what works, what to cut, your winning formula)
+- **小红书 / X / Substack sources** — per-account analysis + a cross-account *landscape* for
+  each platform (top themes, 常青 vs 热点 topics, and the gaps you're positioned to fill)
+
+That intelligence then feeds the creation pipeline: **Vault** (ranked ideas) → **Draft** (in
+your voice) → **Council** (six reviewers score it).
+
+**It's all regenerable from an ID.** The scripts are the machinery; the pulled data is
+disposable and gitignored. Clone this repo, run `/onboard <your-id>`, and it rebuilds the
+whole dashboard for *your* account.
+
+```bash
+node scripts/xhs_me.mjs <your-xhs-id>       # pull your content
+node scripts/xhs_discover.mjs               # find creators in your niche
+node scripts/x_creator.mjs --list           # pull X builders
+node scripts/substack_creator.mjs --list    # pull Substack feeds
+# …analyze (Claude agents), then:
+node scripts/build_dashboard.mjs            # build
+node scripts/serve.mjs                       # → http://localhost:8420
+```
+
+See `.claude/commands/onboard.md` for the full flow. Needs a [TikHub](https://tikhub.io) API
+key (~a few cents per onboarding); Substack is free RSS.
+
 ## Setup
 
 ```bash

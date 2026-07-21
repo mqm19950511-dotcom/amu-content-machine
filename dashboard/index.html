@@ -1,0 +1,954 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>内容工厂 · Content Machine</title>
+<style>
+  :root{
+    --cream:#F7F3E9; --ink:#0F0F0F; --muted:#6E6C62; --line:#E7E1D2;
+    --yellow:#EDE5A6; --pink:#F7D5E5; --sage:#C9D3A4; --peri:#CDD1F0;
+    --card:#FFFFFF; --r:20px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--cream);color:var(--ink);
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,"PingFang SC","Hiragino Sans GB",sans-serif;
+    padding:20px;-webkit-font-smoothing:antialiased}
+  .shell{display:grid;grid-template-columns:212px 1fr;gap:20px;max-width:1560px;margin:0 auto}
+  a{color:inherit}
+
+  aside{background:var(--ink);border-radius:var(--r);padding:26px 18px;color:#fff;
+        position:sticky;top:20px;height:calc(100vh - 40px);display:flex;flex-direction:column}
+  .logo{font-size:20px;font-weight:600;letter-spacing:-.02em;margin-bottom:28px;padding:0 8px}
+  .logo b{color:var(--yellow)}
+  .navlabel{font-size:10px;text-transform:uppercase;letter-spacing:.11em;color:#7A776D;margin:0 8px 9px}
+  nav button{display:flex;width:100%;align-items:center;gap:10px;padding:9px 10px;border-radius:11px;
+        color:#B9B6AC;background:none;border:0;cursor:pointer;font:inherit;font-size:13.5px;margin-bottom:2px;text-align:left}
+  nav button .ic{width:15px;text-align:center;font-size:13px}
+  nav button:hover{background:#1D1D1B;color:#fff}
+  nav button[aria-current]{background:#fff;color:var(--ink);font-weight:500}
+  nav button[data-off]{opacity:.34;cursor:default}
+  nav button[data-off]:hover{background:none;color:#B9B6AC}
+  .navgap{margin-top:20px}
+  .foot{margin-top:auto;font-size:11px;color:#6A6760;padding:0 8px;line-height:1.6}
+
+  h1{font-size:27px;font-weight:600;letter-spacing:-.025em}
+  .sub{color:var(--muted);font-size:13.5px;margin-top:4px;max-width:66ch}
+  .view{display:none}.view.on{display:block}
+
+  /* profile header */
+  .prof{display:flex;gap:18px;align-items:center;background:var(--card);border-radius:var(--r);padding:20px;margin-bottom:16px}
+  .prof img{width:72px;height:72px;border-radius:50%;object-fit:cover;background:var(--line);flex:none}
+  .prof .nm{font-size:20px;font-weight:600}
+  .prof .bio{color:var(--muted);font-size:12.5px;white-space:pre-line;margin-top:2px}
+  .prof .rl{display:flex;gap:22px;margin-left:auto;text-align:center;flex-wrap:wrap}
+  .prof .rl div{min-width:52px}
+  .prof .rl b{display:block;font-size:19px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+  .prof .rl span{font-size:10px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+  .stat{border-radius:var(--r);padding:18px;position:relative;overflow:hidden;min-height:104px}
+  .stat h3{font-size:12.5px;font-weight:600;margin-bottom:10px}
+  .stat .big{font-size:25px;font-weight:600;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+  .stat .cap{font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;opacity:.62;margin-top:6px}
+  .stat .glyph{position:absolute;right:-12px;bottom:-18px;font-size:82px;opacity:.14;line-height:1;pointer-events:none}
+  .s1{background:var(--yellow)}.s2{background:var(--pink)}.s3{background:var(--sage)}.s4{background:var(--peri)}
+
+  .panel{background:var(--card);border-radius:var(--r);padding:20px;margin-bottom:16px}
+  .ptop{display:flex;justify-content:space-between;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap}
+  .ptop h2{font-size:16px;font-weight:600}
+  .tools{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  input[type=search],select{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--cream);
+    border-radius:999px;padding:8px 14px;color:var(--ink);outline:none}
+  input[type=search]{width:200px}
+  input[type=search]:focus,select:focus{border-color:var(--ink)}
+  .btn{font:inherit;font-size:12.5px;border:0;border-radius:999px;padding:8px 15px;background:var(--ink);color:#fff;cursor:pointer}
+  .btn.ghost{background:var(--cream);color:var(--ink);border:1px solid var(--line)}
+  .btn.ghost[aria-pressed=true]{background:var(--yellow);border-color:var(--yellow)}
+
+  /* charts */
+  .charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px}
+  .chart{background:var(--card);border-radius:var(--r);padding:18px}
+  .chart h3{font-size:13px;font-weight:600;margin-bottom:2px}
+  .chart .csub{font-size:11.5px;color:var(--muted);margin-bottom:12px}
+  .chart svg{width:100%;height:auto;display:block;overflow:visible}
+  .legend{display:flex;gap:14px;margin-top:10px;flex-wrap:wrap}
+  .legend span{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:5px}
+  .legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+  @media(max-width:820px){.charts{grid-template-columns:1fr}}
+
+  /* analysis panel — visual */
+  .analysis{background:var(--card);border-radius:var(--r);padding:22px;margin-bottom:16px}
+  .ahdr{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .ahdr h2{font-size:17px;font-weight:600}
+  .atag{font-size:10px;background:var(--ink);color:#fff;padding:3px 9px;border-radius:999px;letter-spacing:.03em}
+  .analysis .lead{color:#3A3833;font-size:14px;line-height:1.6;margin-bottom:20px;max-width:80ch;
+    padding:14px 16px;background:var(--cream);border-radius:12px;border-left:3px solid var(--yellow)}
+  .asec{margin-bottom:24px}
+  .asec h4{font-size:12px;font-weight:600;margin-bottom:13px;text-transform:uppercase;letter-spacing:.05em;color:#4A4840}
+  .acols{display:grid;grid-template-columns:1fr 1fr;gap:16px 28px}
+  @media(max-width:820px){.acols{grid-template-columns:1fr}}
+  /* theme cards — 2-col grid */
+  .tgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:820px){.tgrid{grid-template-columns:1fr}}
+  .tcard{border:1px solid var(--line);border-radius:13px;padding:13px 14px}
+  .tcard-h{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+  .tn{font-weight:600;font-size:13.5px}
+  .tp{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums;background:var(--cream);
+    padding:2px 8px;border-radius:999px;flex:none}
+  .tbar-track{height:7px;background:var(--cream);border-radius:999px;overflow:hidden}
+  .tbar-fill{height:100%;border-radius:999px}
+  .tw{font-size:12px;color:var(--muted);line-height:1.55;margin-top:9px}
+  /* performer cards — row of 3 */
+  .pcards{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}
+  @media(max-width:820px){.pcards{grid-template-columns:1fr}}
+  .pcard{padding:13px;background:var(--cream);border-radius:13px}
+  .pcard-h{display:flex;gap:9px;align-items:center;margin-bottom:7px}
+  .pcard-r{flex:none;width:19px;height:19px;border-radius:50%;background:var(--ink);color:#fff;font-size:11px;
+    display:flex;align-items:center;justify-content:center;font-weight:600}
+  .pcard-t{font-weight:600;font-size:13px;line-height:1.35}
+  .pcard-w{font-size:12px;color:var(--muted);line-height:1.5}
+  /* action cards */
+  .acards{display:flex;flex-direction:column;gap:8px}
+  .acard{font-size:13px;line-height:1.5;padding:11px 13px 11px 32px;border-radius:11px;position:relative}
+  .acard:before{position:absolute;left:12px;top:11px}
+  .acard.do{background:#FBEEF4}.acard.do:before{content:'✦';color:#C6407A}
+  .acard.gap{background:var(--cream)}.acard.gap:before{content:'◇';color:#8A867B}
+  .hchips{display:flex;flex-wrap:wrap;gap:7px}
+  .hchip{font-size:12px;background:var(--cream);border:1px solid var(--line);border-radius:999px;padding:5px 12px}
+  .fnote{font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:8px}
+  .asub{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+  @media(max-width:820px){.asub{grid-template-columns:1fr}}
+
+  /* creator detail */
+  .back{background:none;border:0;color:var(--muted);cursor:pointer;font:inherit;font-size:13px;margin-bottom:10px;padding:4px 0}
+  .back:hover{color:var(--ink)}
+  .cdhead{display:flex;gap:16px;align-items:center;margin-bottom:14px}
+  .cdhead img{width:60px;height:60px;border-radius:50%;object-fit:cover;background:var(--line)}
+
+  /* landscape panel */
+  .land{background:var(--card);border-radius:var(--r);padding:22px;margin-bottom:16px}
+  .land .lead{border-left-color:var(--peri)}
+  .lprev{font-size:11.5px;color:#8A867B;line-height:1.45;background:var(--cream);padding:5px 9px;border-radius:8px;display:inline-block}
+  .ef{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}
+  @media(max-width:820px){.ef{grid-template-columns:1fr}}
+  .efbox{border:1px solid var(--line);border-radius:14px;padding:16px}
+  .efbox.ever{background:#F5F8EE}.efbox.fresh{background:#FBF0F5}
+  .efbox h4{font-size:13px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:7px}
+  .efbox .tag{font-size:10px;padding:2px 8px;border-radius:999px;font-weight:500}
+  .efbox.ever .tag{background:var(--sage)}.efbox.fresh .tag{background:var(--pink)}
+  .efitem{margin-bottom:11px}.efitem:last-child{margin-bottom:0}
+  .efitem b{font-size:13px;font-weight:600;display:block}
+  .efitem span{font-size:12px;color:var(--muted);line-height:1.5}
+  .lgaps{display:flex;flex-direction:column;gap:8px}
+  .lgap{font-size:13px;line-height:1.5;padding:10px 12px 10px 30px;border-radius:10px;background:#FBEEF4;position:relative}
+  .lgap:before{content:'✦';position:absolute;left:11px;top:10px;color:#C6407A}
+
+  /* expandable creator rows */
+  tr.cr-row.has{cursor:pointer}
+  tr.cr-row.has:hover{background:#FCFAF3}
+  .caret{display:inline-block;width:14px;color:#B7B3A6;transition:transform .15s}
+  tr.cr-row.open .caret{transform:rotate(90deg);color:var(--ink)}
+  tr.exp>td{padding:0;border-top:0;background:#FCFAF3}
+  .exp-inner{padding:6px 12px 18px 44px}
+  .exp-posts{margin-top:6px}
+  .exp-posts .ph{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:14px 0 8px}
+  .ppost{display:flex;gap:10px;align-items:center;padding:7px 0;border-top:1px solid var(--line);font-size:13px}
+  .ppost .pr{color:#AAA79C;font-size:11px;width:16px;flex:none}
+  .ppost a{text-decoration:none;flex:1;min-width:0}
+  .ppost a:hover{text-decoration:underline}
+  .ppost .pe{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;flex:none}
+
+  /* category legend */
+  .cats{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:2px}
+  .catchip{border:1px solid var(--line);background:var(--cream);border-radius:999px;padding:5px 11px;font-size:12px;
+    cursor:pointer;display:flex;gap:6px;align-items:center;white-space:nowrap}
+  .catchip:hover{border-color:var(--ink)}
+  .catchip[aria-pressed=true]{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .catchip small{opacity:.6;font-variant-numeric:tabular-nums}
+
+  .scroll{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:820px}
+  th{text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;padding:0 10px 10px;white-space:nowrap}
+  th[data-k]{cursor:pointer;user-select:none}
+  th[data-k]:hover{color:var(--ink)}
+  th .ar{opacity:0;font-size:9px}th[aria-sort] .ar{opacity:1}
+  td{padding:10px;border-top:1px solid var(--line);vertical-align:middle}
+  tbody tr:hover{background:#FCFAF3}
+  .rank{color:#AAA79C;font-size:12px;font-variant-numeric:tabular-nums;width:30px}
+  .cover{width:42px;height:42px;border-radius:9px;object-fit:cover;background:var(--line);flex:none}
+  .av{width:34px;height:34px;border-radius:50%;object-fit:cover;background:var(--line);flex:none}
+  .who{font-weight:500}.who a{text-decoration:none}.who a:hover{text-decoration:underline}
+  .titcell{display:flex;gap:10px;align-items:center;min-width:280px}
+  .tt{max-width:40ch}
+  .sm{color:var(--muted);font-size:11.5px;margin-top:1px}
+  .badge{font-size:11px;padding:3px 8px;border-radius:999px;background:var(--cream);border:1px solid var(--line);white-space:nowrap;cursor:pointer}
+  .num{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+  .rate b{font-weight:600}
+  .hot{color:#C6407A;font-weight:600}
+  .star{color:#D9A400}
+  .chips{display:flex;gap:4px;flex-wrap:wrap;max-width:220px}
+  .chip{background:var(--cream);border:1px solid var(--line);border-radius:999px;padding:2px 8px;font-size:10.5px;white-space:nowrap}
+  .chip.multi{background:var(--peri);border-color:var(--peri)}
+  .bolt{background:none;border:0;cursor:pointer;font-size:15px;opacity:.17;padding:2px}
+  .bolt:hover{opacity:.5}.bolt[aria-pressed=true]{opacity:1}
+  .empty{padding:40px;text-align:center;color:var(--muted)}
+  .note{margin-top:12px;font-size:11.5px;color:var(--muted);line-height:1.6}
+  code{background:var(--cream);padding:1px 5px;border-radius:5px;font-size:.9em}
+
+  dialog{border:0;border-radius:var(--r);padding:22px;max-width:640px;width:92vw;background:var(--card);color:var(--ink)}
+  dialog::backdrop{background:rgba(15,15,15,.42)}
+  dialog h3{font-size:16px;margin-bottom:8px}dialog p{font-size:12.5px;color:var(--muted);margin-bottom:11px}
+  textarea{width:100%;height:230px;font:12px/1.6 ui-monospace,Menlo,monospace;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--cream);resize:vertical;color:var(--ink)}
+  .drow{display:flex;gap:8px;justify-content:flex-end;margin-top:12px}
+  .catmenu{display:flex;flex-direction:column;gap:2px;max-height:340px;overflow:auto}
+  .catmenu button{text-align:left;border:0;background:none;padding:8px 10px;border-radius:9px;cursor:pointer;font:inherit;font-size:13px}
+  .catmenu button:hover{background:var(--cream)}
+
+  /* source list (X / Substack) */
+  .srclist{display:flex;flex-direction:column;gap:10px}
+  .scard{background:var(--card);border-radius:var(--r);overflow:hidden}
+  .scard-h{display:flex;gap:13px;align-items:center;padding:15px 18px;cursor:pointer}
+  .scard-h:hover{background:#FCFAF3}
+  .scard-h img{width:44px;height:44px;border-radius:50%;object-fit:cover;background:var(--line);flex:none}
+  .scard-h .nm{font-weight:600;font-size:14.5px}
+  .scard-h .meta{font-size:12px;color:var(--muted);margin-top:1px;max-width:70ch;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .scard-h .foll{margin-left:auto;font-size:12px;color:var(--muted);white-space:nowrap;flex:none;text-align:right}
+  .scard-h .caret{flex:none}
+  .scard-body{padding:2px 18px 18px;border-top:1px solid var(--line);display:none}
+  .scard.open .scard-body{display:block}
+  .scard.open .caret{transform:rotate(90deg)}
+  .twt{padding:9px 0;border-top:1px solid var(--line);font-size:13px;line-height:1.5}
+  .twt:first-child{border-top:0}
+  .twt a{text-decoration:none;color:inherit}.twt a:hover{color:#C6407A}
+  .twt .te{font-size:11.5px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
+
+  /* vault */
+  .vgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:820px){.vgrid{grid-template-columns:1fr}}
+  .vcard{background:var(--card);border-radius:16px;padding:18px;position:relative}
+  .vcard .vrank{position:absolute;top:16px;right:16px;font-size:11px;color:var(--muted)}
+  .vtype{display:inline-block;font-size:11px;padding:3px 9px;border-radius:999px;margin-bottom:9px}
+  .vtype.ever{background:var(--sage)}.vtype.fresh{background:var(--pink)}
+  .vcard .vt{font-weight:600;font-size:15px;line-height:1.4;margin-bottom:7px}
+  .vcard .va{font-size:13px;color:#3A3833;line-height:1.55;margin-bottom:9px}
+  .vcard .vw{font-size:12px;color:var(--muted);line-height:1.5;border-top:1px solid var(--line);padding-top:9px}
+  .vcard .vw b{color:#4A4840}
+  .vmeta{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+  .vmeta span{font-size:11px;background:var(--cream);border:1px solid var(--line);border-radius:999px;padding:3px 9px}
+  .vcard .vgo{margin-top:12px;font-size:12px;color:#C6407A;background:none;border:0;cursor:pointer;padding:0;font-weight:500}
+
+  /* draft + council */
+  .draftbox{background:var(--card);border-radius:var(--r);padding:24px;max-width:680px;white-space:pre-wrap;font-size:15px;line-height:1.75}
+  .draftbox h3{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;font-weight:600}
+  .cscore{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+  @media(max-width:820px){.cscore{grid-template-columns:1fr}}
+  .creview{background:var(--card);border-radius:14px;padding:16px}
+  .creview .ch{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+  .creview .cn{font-weight:600;font-size:14px}
+  .creview .cs{font-size:20px;font-weight:600;font-variant-numeric:tabular-nums}
+  .creview .cbody{font-size:12.5px;color:var(--muted);line-height:1.55}
+  .empty-big{background:var(--card);border-radius:var(--r);padding:48px;text-align:center;color:var(--muted);line-height:1.7}
+
+  #langtoggle{position:fixed;top:26px;right:30px;z-index:100;font:inherit;font-size:12px;font-weight:600;
+    background:var(--ink);color:#fff;border:0;border-radius:999px;padding:7px 14px;cursor:pointer;letter-spacing:.03em}
+  #langtoggle:hover{background:#2B2B28}
+
+  @media(max-width:1000px){
+    .shell{grid-template-columns:1fr}
+    aside{position:static;height:auto;flex-direction:row;align-items:center;gap:14px;overflow-x:auto}
+    .logo{margin:0}.navlabel,.foot{display:none}
+    nav{display:flex;gap:4px}nav button{margin:0;white-space:nowrap;width:auto}.navgap{margin:0}
+    .stats{grid-template-columns:repeat(2,1fr)}.prof{flex-wrap:wrap}.prof .rl{margin-left:0;width:100%}
+  }
+</style>
+</head>
+<body>
+<button id="langtoggle" title="English / 中文">EN</button>
+<div class="shell">
+<aside>
+  <div class="logo">content<b>.</b>machine</div>
+  <div class="navlabel">我</div>
+  <nav id="nav">
+    <button data-v="me" aria-current="page"><span class="ic">◆</span>我的内容</button>
+    <div class="navlabel navgap">来源</div>
+    <button data-v="creators"><span class="ic">◗</span>小红书 创作者</button>
+    <button data-v="x"><span class="ic">✕</span>X 账号</button>
+    <button data-v="sub"><span class="ic">✉</span>Substack</button>
+    <div class="navlabel navgap">流程</div>
+    <button data-v="vault"><span class="ic">◇</span>灵感库</button>
+    <button data-v="draft"><span class="ic">▤</span>草稿</button>
+    <button data-v="council"><span class="ic">★</span>评审团</button>
+  </nav>
+  <div class="foot">灰色项目会在你<br>运行流程后激活。</div>
+</aside>
+
+<main>
+  <!-- ══ MY CONTENT ══ -->
+  <section class="view on" id="v-me">
+    <div style="margin-bottom:16px">
+      <h1>我的内容</h1>
+      <p class="sub">你发布的每一篇笔记，附公开互动数据与自动分类。按「收藏率」排序，看大家真正会收藏的内容——这也是
+      <code>/bootstrap-voice</code> 学习你写作风格的依据。</p>
+    </div>
+    <div class="prof" id="prof"></div>
+    <div class="stats" id="me-stats"></div>
+    <div id="me-charts"></div>
+    <div id="me-analysis"></div>
+
+    <div class="panel">
+      <div class="ptop">
+        <h2>笔记 <span style="color:var(--muted);font-weight:400" id="me-count"></span></h2>
+        <div class="tools">
+          <input type="search" id="me-q" placeholder="搜索标题…">
+          <button class="btn ghost" id="me-out" aria-pressed="false">★ 爆款</button>
+        </div>
+      </div>
+      <div class="cats" id="me-cats"></div>
+      <div class="scroll" style="margin-top:12px">
+        <table>
+          <thead><tr>
+            <th class="rank"></th>
+            <th data-k="title">笔记 <span class="ar">▾</span></th>
+            <th data-k="cat">分类 <span class="ar">▾</span></th>
+            <th data-k="likes" class="num">赞 <span class="ar">▾</span></th>
+            <th data-k="saves" class="num">藏 <span class="ar">▾</span></th>
+            <th data-k="comments" class="num">评 <span class="ar">▾</span></th>
+            <th data-k="shares" class="num">转 <span class="ar">▾</span></th>
+            <th data-k="saveRate" class="num">收藏率 <span class="ar">▾</span></th>
+          </tr></thead>
+          <tbody id="me-rows"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="me-empty" hidden>没有匹配的笔记。</div>
+      <p class="note">
+        <b>收藏率 = 藏 ÷ 赞。</b>高于你的中位数（<span id="me-med"></span>）说明大家收藏起来回看，而不只是点赞划过。
+        <b>★ = 爆款</b>——互动达到你中位数的 3 倍以上，这些定义了你的风格。点任意分类标签可重新归类，改动保存在本浏览器。<br>
+        <b>说明：</b>完播率 / 曝光量 / 播放量 不在这里——那些是「创作者中心」的私有数据，需要你本人登录，任何 API 都拿不到。
+      </p>
+    </div>
+  </section>
+
+  <!-- ══ CREATORS ══ -->
+  <section class="view" id="v-creators">
+    <div style="margin-bottom:16px">
+      <h1>小红书 创作者</h1>
+      <p class="sub">按覆盖领域数、再按互动量排序。覆盖多个领域能区分「持续输出的声音」和「一次爆款」。
+      标 ⚡ 给值得较劲的人——导出会写入 <code>sources/rednote.local.md</code>。带 ◆ 的已做内容分析，点一行即可展开。</p>
+    </div>
+    <div class="stats" id="cr-stats"></div>
+    <div id="cr-landscape"></div>
+    <div class="panel">
+      <div class="ptop">
+        <h2>创作者 <span style="color:var(--muted);font-weight:400" id="cr-count"></span></h2>
+        <div class="tools">
+          <input type="search" id="cr-q" placeholder="搜索名字或标题…">
+          <select id="cr-kw"><option value="">全部领域</option></select>
+          <button class="btn ghost" id="cr-only" aria-pressed="false">仅 ⚡</button>
+          <button class="btn" id="cr-exp">导出 ⚡</button>
+        </div>
+      </div>
+      <div class="scroll">
+        <table>
+          <thead><tr>
+            <th class="rank"></th><th></th>
+            <th data-k="name">创作者 <span class="ar">▾</span></th>
+            <th data-k="kwn">领域 <span class="ar">▾</span></th>
+            <th data-k="eng" class="num">赞 <span class="ar">▾</span></th>
+            <th data-k="col" class="num">藏 <span class="ar">▾</span></th>
+            <th data-k="rate" class="num">收藏率 <span class="ar">▾</span></th>
+          </tr></thead>
+          <tbody id="cr-rows"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="cr-empty" hidden>没有匹配的创作者。</div>
+    </div>
+  </section>
+
+  <!-- ══ CREATOR DETAIL ══ -->
+  <section class="view" id="v-creator">
+    <button class="back" id="cd-back">← 返回创作者列表</button>
+    <div class="cdhead" id="cd-head"></div>
+    <div id="cd-analysis"></div>
+    <div class="panel" id="cd-posts-wrap">
+      <div class="ptop"><h2>近期笔记 <span style="color:var(--muted);font-weight:400" id="cd-count"></span></h2></div>
+      <div class="scroll"><table><thead><tr>
+        <th class="rank"></th><th data-k="title">笔记</th>
+        <th class="num">赞</th><th class="num">藏</th><th class="num">评</th><th class="num">转</th><th class="num">收藏率</th>
+      </tr></thead><tbody id="cd-rows"></tbody></table></div>
+    </div>
+  </section>
+
+  <!-- ══ X ══ -->
+  <section class="view" id="v-x">
+    <div style="margin-bottom:16px"><h1>X 账号</h1>
+      <p class="sub">你关注的 AI Builder。点一行展开内容分析 + 高赞推文。来自 张咋啦 的「关注产品人不关注媒体人」清单。</p></div>
+    <div id="x-landscape"></div>
+    <div id="x-rows" class="srclist"></div>
+  </section>
+
+  <!-- ══ Substack ══ -->
+  <section class="view" id="v-sub">
+    <div style="margin-bottom:16px"><h1>Substack 订阅</h1>
+      <p class="sub">你订阅的刊物。Substack 无公开互动数据，所以分析的是<b>选题与视角</b>，不是"为什么火"。点一行展开。</p></div>
+    <div id="sub-landscape"></div>
+    <div id="sub-rows" class="srclist"></div>
+  </section>
+
+  <!-- ══ VAULT ══ -->
+  <section class="view" id="v-vault">
+    <div style="margin-bottom:16px"><h1>灵感库</h1>
+      <p class="sub">Oracle 综合了赛道全景（空白/常青/热点）+ 你的内容分析（爆款配方）+ 创作者打法，生成的排序选题。
+      挑一个 → 到「草稿」用你的风格写出来。</p></div>
+    <div id="vault-body"></div>
+  </section>
+
+  <!-- ══ DRAFT ══ -->
+  <section class="view" id="v-draft">
+    <div style="margin-bottom:16px"><h1>草稿</h1>
+      <p class="sub">用你的语音（从229篇提取）把一个灵感库选题写成帖。每句都能追溯到你真实说过的话，不是AI凭空生成。</p></div>
+    <div id="draft-body"></div>
+  </section>
+
+  <!-- ══ COUNCIL ══ -->
+  <section class="view" id="v-council">
+    <div style="margin-bottom:16px"><h1>评审团</h1>
+      <p class="sub">6位评委独立打分（1-10）。平均低于9触发修改。含一位「AI味过敏师」有一票否决权。</p></div>
+    <div id="council-body"></div>
+  </section>
+</main>
+</div>
+
+<dialog id="dlg"><h3 id="dlg-h"></h3><p id="dlg-p"></p>
+  <textarea id="dlg-t" readonly></textarea>
+  <div class="drow"><button class="btn ghost" id="dlg-x">关闭</button><button class="btn" id="dlg-c">复制</button></div>
+</dialog>
+<dialog id="catdlg"><h3>Recategorize</h3><p id="catdlg-p"></p><div class="catmenu" id="catmenu"></div></dialog>
+
+<script src="data.js"></script>
+<script src="me.js"></script>
+<script>
+(function(){
+  const $=s=>document.querySelector(s), esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmt=n=>n>=1000?(n/1000).toFixed(n>=10000?0:1).replace(/\.0$/,'')+'k':String(n);
+  const ME=window.ME, SCAN=window.SCAN;
+  const CAT={}; (ME?.cats||[]).forEach(c=>CAT[c.key]=c); CAT.other={key:'other',label:'其他',emoji:'•'};
+
+  /* ── SVG trend charts (last 18 active months) ── */
+  function chartsHTML(series){
+    let s=series.filter(m=>m.count>0);
+    s=s.slice(-18);
+    if(s.length<2) return '';
+    const W=440,H=150,PL=34,PR=10,PT=12,PB=26;
+    const iw=W-PL-PR, ih=H-PT-PB;
+    const xs=i=>PL+(s.length<=1?0:i/(s.length-1)*iw);
+    const bw=Math.max(4,iw/s.length*0.6);
+    const lab=m=>{const [y,mo]=m.month.split('-');return mo==='01'?y.slice(2)+'年':mo+'月'};
+    const ticks=s.map((m,i)=>(i%3===0||i===s.length-1)?`<text x="${xs(i)}" y="${H-8}" font-size="9" fill="#9A968B" text-anchor="middle">${lab(m)}</text>`:'').join('');
+
+    // Chart 1: monthly engagement split (stacked bars: likes+saves+shares)
+    const totals=s.map(m=>m.likes+m.saves+m.shares);
+    const max1=Math.max(...totals,1);
+    const y1=v=>PT+ih-(v/max1*ih);
+    const bars=s.map((m,i)=>{
+      const x=xs(i)-bw/2;let acc=0;const seg=[];
+      for(const [v,c] of [[m.likes,'var(--pink)'],[m.saves,'var(--peri)'],[m.shares,'var(--sage)']]){
+        const h=v/max1*ih; if(h>0){seg.push(`<rect x="${x.toFixed(1)}" y="${(PT+ih-acc-h).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" fill="${c}" rx="1.5"/>`);} acc+=h;
+      }
+      return seg.join('');
+    }).join('');
+    const gl1=[0,.5,1].map(f=>{const y=PT+ih-f*ih;const v=Math.round(max1*f);return `<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="#EFE9DA"/><text x="${PL-5}" y="${y+3}" font-size="9" fill="#B7B3A6" text-anchor="end">${fmt(v)}</text>`}).join('');
+
+    // Chart 2: median engagement per month (area+line)
+    const max2=Math.max(...s.map(m=>m.medEng||0),1);
+    const y2=v=>PT+ih-((v||0)/max2*ih);
+    const pts=s.map((m,i)=>`${xs(i).toFixed(1)},${y2(m.medEng).toFixed(1)}`).join(' ');
+    const area=`${PL},${PT+ih} ${pts} ${xs(s.length-1)},${PT+ih}`;
+    const dots=s.map((m,i)=>`<circle cx="${xs(i).toFixed(1)}" cy="${y2(m.medEng).toFixed(1)}" r="2.5" fill="var(--ink)"/>`).join('');
+    const gl2=[0,.5,1].map(f=>{const y=PT+ih-f*ih;const v=Math.round(max2*f);return `<line x1="${PL}" y1="${y}" x2="${W-PR}" y2="${y}" stroke="#EFE9DA"/><text x="${PL-5}" y="${y+3}" font-size="9" fill="#B7B3A6" text-anchor="end">${v}</text>`}).join('');
+
+    return `<div class="charts">
+      <div class="chart">
+        <h3>互动构成 · 按月</h3><div class="csub">近 ${s.length} 个有发布的月份 · 赞 / 藏 / 转发 叠加</div>
+        <svg viewBox="0 0 ${W} ${H}">${gl1}${bars}${ticks}</svg>
+        <div class="legend"><span><i style="background:var(--pink)"></i>赞</span><span><i style="background:var(--peri)"></i>藏</span><span><i style="background:var(--sage)"></i>转发</span></div>
+      </div>
+      <div class="chart">
+        <h3>互动中位数 · 按月</h3><div class="csub">每篇笔记的中位互动 (赞+藏+评+转)，看趋势而非绝对值</div>
+        <svg viewBox="0 0 ${W} ${H}">${gl2}<polygon points="${area}" fill="var(--yellow)" opacity="0.35"/><polyline points="${pts}" fill="none" stroke="var(--ink)" stroke-width="2"/>${dots}${ticks}</svg>
+      </div>
+    </div>`;
+  }
+
+  /* shared: render a cross-source landscape panel */
+  function landscapeHTML(L,title,sub,patLabel){
+    const themes=(L.top_themes||[]).map(t=>`
+      <div class="tcard"><div class="tn" style="margin-bottom:4px">${esc(t.theme)}</div>
+      ${t.prevalence?`<div class="lprev">${esc(t.prevalence)}</div>`:''}
+      <div class="tw" style="margin-top:6px">${esc(t.why_popular||'')}</div></div>`).join('');
+    const ever=(L.evergreen||[]).map(e=>`<div class="efitem"><b>${esc(e.topic)}</b><span>${esc(e.reason)}</span></div>`).join('');
+    const fresh=(L.fresh||[]).map(e=>`<div class="efitem"><b>${esc(e.topic)}</b><span>${esc(e.reason)}</span></div>`).join('');
+    const pat=(L.winning_patterns||[]).map(p=>`<span class="hchip">${esc(p)}</span>`).join('');
+    const gaps=(L.gaps||[]).map(g=>`<div class="lgap">${esc(g)}</div>`).join('');
+    return `<div class="land">
+      <div class="ahdr"><h2>${esc(title)}</h2><span class="atag">AI 分析 · ${esc(sub)}</span></div>
+      <p class="lead">${esc(L.summary||'')}</p>
+      <div class="asec"><h4>📊 热门主题</h4><div class="tgrid">${themes}</div></div>
+      <div class="ef">
+        <div class="efbox ever"><h4>🌲 常青主题 <span class="tag">可反复做</span></h4>${ever}</div>
+        <div class="efbox fresh"><h4>🔥 当下热点 <span class="tag">有时效</span></h4>${fresh}</div>
+      </div>
+      ${pat?`<div class="asec"><h4>${patLabel||'🎯 共通打法'}</h4><div class="hchips">${pat}</div></div>`:''}
+      ${gaps?`<div class="asec" style="margin-bottom:0"><h4>✦ 你的机会空白</h4><div class="lgaps">${gaps}</div></div>`:''}
+    </div>`;
+  }
+
+  /* shared: render a content-analysis object into HTML — visual, scannable */
+  const THEME_COLORS=['var(--pink)','var(--peri)','var(--sage)','var(--yellow)','#E9C9E0','#C9E0D3','#E0D6C9','#D6C9E0'];
+  function pct(s){const m=String(s||'').match(/(\d+)/);return m?+m[1]:0}
+  function analysisHTML(a,title,isMine){
+    if(!a) return '';
+    // themes as horizontal bars, sorted by share
+    const themes=(a.themes||[]).map((t,i)=>({...t,p:pct(t.share),c:THEME_COLORS[i%THEME_COLORS.length]})).sort((x,y)=>y.p-x.p);
+    const maxP=Math.max(...themes.map(t=>t.p),1);
+    const themeCards=themes.map(t=>`
+      <div class="tcard">
+        <div class="tcard-h"><span class="tn">${esc(t.name)}</span><span class="tp">${esc(t.share||'')}</span></div>
+        <div class="tbar-track"><div class="tbar-fill" style="width:${Math.max(6,t.p/maxP*100)}%;background:${t.c}"></div></div>
+        <div class="tw">${esc(t.why_it_works||'')}</div>
+      </div>`).join('');
+    const perf=(a.top_performers||[]).slice(0,3).map((t,i)=>`
+      <div class="pcard"><div class="pcard-h"><span class="pcard-r">${i+1}</span><span class="pcard-t">${esc(t.title)}</span></div>
+        <div class="pcard-w">${esc(t.why)}</div></div>`).join('');
+    const borrow=(a.what_to_borrow||[]).map(h=>`<div class="acard do">${esc(h)}</div>`).join('');
+    const blind=(a.blind_spots||[]).map(h=>`<div class="acard gap">${esc(h)}</div>`).join('');
+    const hooks=(a.hooks||[]).map(h=>`<span class="hchip">${esc(h)}</span>`).join('');
+    return `<div class="analysis">
+      <div class="ahdr"><h2>${esc(title)}</h2><span class="atag">AI 分析</span></div>
+      <p class="lead">${esc(a.summary||'')}</p>
+
+      <div class="asec"><h4>📊 内容主题分布</h4><div class="tgrid">${themeCards}</div></div>
+
+      <div class="asec"><h4>🔥 爆款为什么爆</h4><div class="pcards">${perf}</div></div>
+
+      <div class="asub">
+        <div class="asec" style="margin-bottom:0"><h4>✦ ${isMine?'该多做':'可借鉴'}</h4><div class="acards">${borrow}</div></div>
+        ${blind?`<div class="asec" style="margin-bottom:0"><h4>◇ ${isMine?'该少做 / 盲区':'可填补的空白'}</h4><div class="acards">${blind}</div></div>`:''}
+      </div>
+
+      <div class="asub" style="margin-top:24px">
+        ${hooks?`<div class="asec" style="margin-bottom:0"><h4>🪝 常用钩子</h4><div class="hchips">${hooks}</div>${a.formats?`<p class="fnote">${esc(a.formats)}</p>`:''}</div>`:''}
+        ${a.audience?`<div class="asec" style="margin-bottom:0"><h4>👥 受众</h4><p class="fnote">${esc(a.audience)}</p></div>`:''}
+      </div>
+    </div>`;
+  }
+
+  /* ── view switch ── */
+  $('#nav').addEventListener('click',e=>{
+    const b=e.target.closest('button[data-v]'); if(!b)return;
+    document.querySelectorAll('#nav button').forEach(x=>x.removeAttribute('aria-current'));
+    b.setAttribute('aria-current','page');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+    $('#v-'+b.dataset.v).classList.add('on');
+  });
+
+  /* ══ MY CONTENT ══ */
+  if(ME){
+    const p=ME.profile, s=ME.stats;
+    $('#prof').innerHTML=`
+      <img src="${esc(p.avatar)}" alt="" referrerpolicy="no-referrer"
+           onerror="this.style.visibility='hidden'">
+      <div><div class="nm">${esc(p.name)}</div><div class="bio">${esc(p.desc||'')}</div>
+        <div class="sm">${esc(p.location||'')} · 小红书号 ${esc(p.redId||'')}</div></div>
+      <div class="rl">
+        <div><b>${fmt(p.fans||0)}</b><span>粉丝</span></div>
+        <div><b>${fmt(p.follows||0)}</b><span>关注</span></div>
+        <div><b>${fmt(p.likesRecv||0)}</b><span>获赞</span></div>
+        <div><b>${fmt(p.savesRecv||0)}</b><span>获藏</span></div>
+      </div>`;
+    $('#me-stats').innerHTML=`
+      <div class="stat s1"><h3>笔记数</h3><div class="big">${s.notes}</div><div class="cap">${s.videos} 视频 · ${s.notes-s.videos} 图文</div><div class="glyph">▤</div></div>
+      <div class="stat s2"><h3>总收藏</h3><div class="big">${fmt(s.totalSaves)}</div><div class="cap">${fmt(s.totalLikes)} 赞 · ${fmt(s.totalShares)} 转发</div><div class="glyph">♥</div></div>
+      <div class="stat s3"><h3>互动中位数</h3><div class="big">${s.medEng}</div><div class="cap">每篇 (赞+藏+评+转)</div><div class="glyph">▼</div></div>
+      <div class="stat s4"><h3>收藏率中位数</h3><div class="big">${s.medSaveRate}</div><div class="cap">藏 ÷ 赞 · &gt;1 = 值得收藏</div><div class="glyph">✦</div></div>`;
+    $('#me-med').textContent=s.medSaveRate;
+    if(ME.series) $('#me-charts').innerHTML=chartsHTML(ME.series);
+    if(ME.analysis) $('#me-analysis').innerHTML=analysisHTML(ME.analysis,'内容分析',true);
+
+    /* category overrides persist per-browser */
+    const OV='cm.cat', ov=JSON.parse(localStorage.getItem(OV)||'{}');
+    const catOf=n=>ov[n.id]||n.cat;
+    const notes=ME.notes.map(n=>({...n}));
+    let mSort={k:'saves',dir:-1}, mCat='', mOut=false, mQ='';
+
+    function counts(){const c={};notes.forEach(n=>{const k=catOf(n);c[k]=(c[k]||0)+1});return c}
+    function drawCats(){
+      const c=counts();
+      const keys=[...(ME.cats||[]).map(x=>x.key),'other'].filter(k=>c[k]);
+      $('#me-cats').innerHTML=keys.map(k=>`<button class="catchip" data-c="${k}" aria-pressed="${mCat===k}">${CAT[k].emoji} ${esc(CAT[k].label)} <small>${c[k]}</small></button>`).join('');
+    }
+    function view(){
+      let r=notes.filter(n=>{
+        if(mCat&&catOf(n)!==mCat)return false;
+        if(mOut&&!n.outlier)return false;
+        if(mQ&&!(n.title.toLowerCase().includes(mQ)||(n.desc||'').toLowerCase().includes(mQ)))return false;
+        return true;
+      });
+      const k=mSort.k,d=mSort.dir;
+      r.sort((a,b)=>{let v=k==='title'?a.title.localeCompare(b.title,'zh'):k==='cat'?catOf(a).localeCompare(catOf(b)):a[k]-b[k];return v*d});
+      return r;
+    }
+    function draw(){
+      drawCats();
+      const r=view();
+      $('#me-count').textContent=r.length===notes.length?`· ${notes.length}`:`· ${r.length} of ${notes.length}`;
+      $('#me-empty').hidden=r.length>0;
+      $('#me-rows').innerHTML=r.map((n,i)=>{
+        const k=catOf(n),c=CAT[k];
+        return `<tr>
+          <td class="rank">${i+1}</td>
+          <td><div class="titcell">
+            ${n.cover?`<img class="cover" src="${esc(n.cover)}" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">`:'<div class="cover"></div>'}
+            <div><div class="tt">${n.outlier?'<span class="star">★</span> ':''}<a href="${esc(n.url)}" target="_blank" rel="noopener" style="text-decoration:none">${esc(n.title)}</a></div>
+            <div class="sm">${n.type==='video'?'🎬 video':'🖼 image'}</div></div>
+          </div></td>
+          <td><span class="badge" data-id="${esc(n.id)}">${c.emoji} ${esc(c.label)}</span></td>
+          <td class="num">${n.likes.toLocaleString()}</td>
+          <td class="num">${n.saves.toLocaleString()}</td>
+          <td class="num">${n.comments}</td>
+          <td class="num">${n.shares}</td>
+          <td class="num rate"><b class="${n.saveRate>=1?'hot':''}">${n.likes?n.saveRate.toFixed(2):'—'}</b></td>
+        </tr>`;
+      }).join('');
+    }
+    document.querySelectorAll('#v-me th[data-k]').forEach(th=>th.onclick=()=>{
+      const k=th.dataset.k;mSort={k,dir:mSort.k===k?-mSort.dir:(k==='title'||k==='cat'?1:-1)};
+      document.querySelectorAll('#v-me th').forEach(x=>x.removeAttribute('aria-sort'));
+      th.setAttribute('aria-sort',mSort.dir===1?'ascending':'descending');draw();
+    });
+    $('#me-cats').addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(!b)return;mCat=mCat===b.dataset.c?'':b.dataset.c;draw()});
+    $('#me-q').oninput=e=>{mQ=e.target.value.trim().toLowerCase();draw()};
+    $('#me-out').onclick=e=>{mOut=e.currentTarget.getAttribute('aria-pressed')!=='true';e.currentTarget.setAttribute('aria-pressed',mOut);draw()};
+    /* recategorize */
+    $('#me-rows').addEventListener('click',e=>{
+      const b=e.target.closest('.badge[data-id]');if(!b)return;
+      const id=b.dataset.id,n=notes.find(x=>x.id===id);
+      $('#catdlg-p').textContent=`"${n.title}"`;
+      $('#catmenu').innerHTML=[...(ME.cats||[]),{key:'other',label:'其他',emoji:'•'}].map(c=>`<button data-k="${c.key}">${c.emoji} ${esc(c.label)}</button>`).join('');
+      $('#catdlg').showModal();
+      $('#catmenu').onclick=ev=>{const cb=ev.target.closest('button[data-k]');if(!cb)return;ov[id]=cb.dataset.k;localStorage.setItem(OV,JSON.stringify(ov));$('#catdlg').close();draw()};
+    });
+    $('#catdlg').addEventListener('click',e=>{if(e.target===$('#catdlg'))$('#catdlg').close()});
+    document.querySelector('#v-me th[data-k="saves"]').setAttribute('aria-sort','descending');
+    draw();
+  }
+
+  /* ══ CREATORS ══ */
+  if(SCAN){
+    const m=SCAN.meta;
+    const multi=SCAN.creators.filter(c=>c.kws.length>=2).length;
+    const topCr=[...SCAN.creators].sort((a,b)=>(b.col+b.eng)-(a.col+a.eng))[0];
+    $('#cr-stats').innerHTML=`
+      <div class="stat s1"><h3>创作者</h3><div class="big">${m.creators}</div><div class="cap">扫描 ${m.notes} 篇笔记</div><div class="glyph">◗</div></div>
+      <div class="stat s2"><h3>多领域</h3><div class="big">${multi}</div><div class="cap">出现在 2+ 关键词下</div><div class="glyph">◆</div></div>
+      <div class="stat s3"><h3>覆盖</h3><div class="big">${m.keywords}</div><div class="cap">搜索的关键词</div><div class="glyph">▼</div></div>
+      <div class="stat s4"><h3>头部创作者</h3><div class="big" style="font-size:17px">${esc(topCr?topCr.name:'—')}</div><div class="cap">${topCr?fmt(topCr.col+topCr.eng)+' 总互动':''}</div><div class="glyph">♥</div></div>`;
+    if(SCAN.landscape) $('#cr-landscape').innerHTML=landscapeHTML(SCAN.landscape,'赛道全景分析',SCAN.creators.filter(c=>c.analysis).length+' 位创作者','🎯 共通爆款打法');
+    const rows=SCAN.creators.map(c=>({...c,kwn:c.kws.length,rate:c.eng?c.col/c.eng:0}));
+    const sel=$('#cr-kw');SCAN.keywords.forEach(k=>sel.add(new Option(k,k)));
+    const openRows=new Set();
+    const KEY='cm.bolts';let bolts=new Set(JSON.parse(localStorage.getItem(KEY)||'[]'));
+    let cSort={k:'kwn',dir:-1};
+    function view(){
+      const q=$('#cr-q').value.trim().toLowerCase(),kw=sel.value,only=$('#cr-only').getAttribute('aria-pressed')==='true';
+      let r=rows.filter(c=>{
+        if(only&&!bolts.has(c.id))return false;
+        if(kw&&!c.kws.includes(kw))return false;
+        if(q&&!(c.name.toLowerCase().includes(q)||c.titles.some(t=>t.toLowerCase().includes(q))))return false;
+        return true;
+      });
+      const k=cSort.k,d=cSort.dir;
+      r.sort((a,b)=>{let v=k==='name'?a.name.localeCompare(b.name,'zh'):a[k]-b[k];if(v===0&&k==='kwn')v=(a.eng+a.col)-(b.eng+b.col);return v*d});
+      return r;
+    }
+    function draw(){
+      const r=view();
+      $('#cr-count').textContent=r.length===rows.length?`· ${rows.length}`:`· ${r.length} of ${rows.length}`;
+      $('#cr-empty').hidden=r.length>0;
+      $('#cr-rows').innerHTML=r.map((c,i)=>{
+        const on=bolts.has(c.id);
+        const chips=c.kws.map(k=>`<span class="chip${c.kws.length>1?' multi':''}">${esc(k)}</span>`).join('');
+        const tt=c.titles.length?`<div class="sm">${esc(c.titles.slice(0,2).join(' · '))}</div>`:'';
+        const has=c.analysis||(c.posts&&c.posts.length);
+        const xhsUrl=`https://www.xiaohongshu.com/user/profile/${encodeURIComponent(c.id)}`;
+        const isOpen=openRows.has(c.id);
+        const nameEl=has
+          ? `<span class="caret">▸</span> ${esc(c.name)}${c.analysis?' <span title="已分析" style="color:#C6407A">◆</span>':''}`
+          : `<a href="${xhsUrl}" target="_blank" rel="noopener">${esc(c.name)}</a>`;
+        let row=`<tr class="cr-row${has?' has':''}${isOpen?' open':''}" data-id="${esc(c.id)}">
+          <td class="rank">${i+1}</td>
+          <td><button class="bolt" data-id="${esc(c.id)}" aria-pressed="${on}" title="他说得对，但漏了点什么">⚡</button></td>
+          <td class="who"><div class="titcell">
+            ${c.avatar?`<img class="av" src="${esc(c.avatar)}" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">`:'<div class="av"></div>'}
+            <div>${nameEl}${tt}</div>
+          </div></td>
+          <td><div class="chips">${chips}</div></td>
+          <td class="num">${c.eng.toLocaleString()}</td>
+          <td class="num">${c.col.toLocaleString()}</td>
+          <td class="num rate"><b>${c.eng?c.rate.toFixed(2):'—'}</b></td>
+        </tr>`;
+        if(isOpen&&has) row+=`<tr class="exp"><td colspan="7"><div class="exp-inner">${expandHTML(c,xhsUrl)}</div></td></tr>`;
+        return row;
+      }).join('');
+    }
+
+    function expandHTML(c,xhsUrl){
+      const posts=(c.posts||[]).slice(0,5);
+      const plist=posts.map((n,i)=>{
+        const sr=n.likes?(n.saves/n.likes):0;
+        return `<div class="ppost"><span class="pr">${i+1}</span>
+          <a href="${esc(n.url)}" target="_blank" rel="noopener">${n.type==='video'?'🎬 ':''}${esc(n.title)}</a>
+          <span class="pe">${fmt(n.likes)}赞 · ${fmt(n.saves)}藏${n.likes?` · 率${sr.toFixed(2)}`:''}</span></div>`;
+      }).join('');
+      return (c.analysis?analysisHTML(c.analysis,'内容分析'):'')+
+        (posts.length?`<div class="exp-posts"><div class="ph">🏆 Top ${posts.length} 笔记</div>${plist}
+          <div style="margin-top:10px"><a href="${xhsUrl}" target="_blank" rel="noopener" class="sm" style="color:#C6407A">在小红书查看全部 →</a></div></div>`:'');
+    }
+    document.querySelectorAll('#v-creators th[data-k]').forEach(th=>th.onclick=()=>{
+      const k=th.dataset.k;cSort={k,dir:cSort.k===k?-cSort.dir:(k==='name'?1:-1)};
+      document.querySelectorAll('#v-creators th').forEach(x=>x.removeAttribute('aria-sort'));
+      th.setAttribute('aria-sort',cSort.dir===1?'ascending':'descending');draw();
+    });
+    $('#cr-rows').addEventListener('click',e=>{
+      const b=e.target.closest('.bolt');
+      if(b){const id=b.dataset.id;bolts.has(id)?bolts.delete(id):bolts.add(id);localStorage.setItem(KEY,JSON.stringify([...bolts]));draw();return;}
+      if(e.target.closest('a'))return; // let links through
+      const row=e.target.closest('tr.cr-row.has');
+      if(row){const id=row.dataset.id;openRows.has(id)?openRows.delete(id):openRows.add(id);draw();}
+    });
+
+    /* creator detail */
+    function showCreator(id){
+      const c=SCAN.creators.find(x=>x.id===id);if(!c)return;
+      const url=`https://www.xiaohongshu.com/user/profile/${encodeURIComponent(c.id)}`;
+      $('#cd-head').innerHTML=`
+        ${c.avatar?`<img src="${esc(c.avatar)}" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">`:'<div style="width:60px;height:60px;border-radius:50%;background:var(--line)"></div>'}
+        <div><div class="nm" style="font-size:19px;font-weight:600">${esc(c.name)}</div>
+        <div class="sm">${fmt(c.eng)} 赞 · ${fmt(c.col)} 藏 · 领域：${c.kws.join('、')}</div>
+        <a href="${url}" target="_blank" rel="noopener" class="sm" style="color:#C6407A">在小红书打开 →</a></div>`;
+      $('#cd-analysis').innerHTML=c.analysis?analysisHTML(c.analysis,'内容分析'):'<div class="panel"><div class="empty">尚未分析。运行创作者分析流程后出现。</div></div>';
+      const posts=c.posts||[];
+      $('#cd-posts-wrap').style.display=posts.length?'':'none';
+      $('#cd-count').textContent=posts.length?`· ${posts.length}`:'';
+      $('#cd-rows').innerHTML=posts.map((n,i)=>{
+        const sr=n.likes?(n.saves/n.likes):0;
+        return `<tr><td class="rank">${i+1}</td>
+          <td><a href="${esc(n.url)}" target="_blank" rel="noopener" style="text-decoration:none">${esc(n.title)}</a> <span class="sm">${n.type==='video'?'🎬':'🖼'}</span></td>
+          <td class="num">${n.likes.toLocaleString()}</td><td class="num">${n.saves.toLocaleString()}</td>
+          <td class="num">${n.comments}</td><td class="num">${n.shares}</td>
+          <td class="num rate"><b class="${sr>=1?'hot':''}">${n.likes?sr.toFixed(2):'—'}</b></td></tr>`;
+      }).join('');
+      document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+      $('#v-creator').classList.add('on');
+      window.scrollTo(0,0);
+    }
+    $('#cd-back').onclick=()=>{location.hash='creators'};
+    window.__showCreator=showCreator;
+    /* hash routing: #creators, #creator=<id> — shareable deep links */
+    function route(){
+      const h=location.hash.slice(1);
+      if(h.startsWith('creator=')){const id=decodeURIComponent(h.slice(8));if(SCAN.creators.find(x=>x.id===id)){showCreator(id);return;}}
+      let view=(h.split(/[&=]/)[0])||'me';
+      if(!document.getElementById('v-'+view))view='me';
+      document.querySelectorAll('#nav button').forEach(x=>x.removeAttribute('aria-current'));
+      document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+      $('#v-'+view).classList.add('on');
+      const nb=$('#nav button[data-v='+view+']');if(nb)nb.setAttribute('aria-current','page');
+    }
+    window.addEventListener('hashchange',route);
+    // open-cr links set the hash instead of calling directly
+    $('#cr-rows').addEventListener('click',e=>{const o=e.target.closest('.open-cr');if(o){e.preventDefault();location.hash='creator='+encodeURIComponent(o.dataset.id);}},true);
+    if(location.hash) route();
+    $('#cr-q').oninput=draw;sel.onchange=draw;
+    $('#cr-only').onclick=e=>{const b=e.currentTarget;b.setAttribute('aria-pressed',b.getAttribute('aria-pressed')!=='true');draw()};
+    $('#cr-exp').onclick=()=>{
+      const pick=rows.filter(c=>bolts.has(c.id)).sort((a,b)=>(b.eng+b.col)-(a.eng+a.col));
+      $('#dlg-h').textContent='⚡ 标记的创作者';
+      $('#dlg-p').innerHTML='粘贴到 <code>sources/rednote.local.md</code>（已 gitignore）。';
+      $('#dlg-t').value=pick.length?`| Creator | ID | 赞/藏 | Beats |\n|---|---|---|---|\n`+pick.map(c=>`| ${c.name} | \`${c.id}\` | ${fmt(c.eng)}/${fmt(c.col)} | ${c.kws.join(', ')} |`).join('\n')+'\n':'还没有标记。点任意创作者旁的 ⚡。';
+      $('#dlg').showModal();
+    };
+    document.querySelector('#v-creators th[data-k="kwn"]').setAttribute('aria-sort','descending');
+    // pre-open a creator from hash: #creators&open=<id>
+    const om=location.hash.match(/open=([^&]+)/);
+    if(om){const id=decodeURIComponent(om[1]);if(SCAN.creators.find(x=>x.id===id))openRows.add(id);}
+    draw();
+  }
+
+  /* ══ X + Substack source lists (expandable cards) ══ */
+  function srcCard(c,platform){
+    const posts=(c.posts||[]).slice(0,5);
+    let plist;
+    if(platform==='x'){
+      plist=posts.map(t=>`<div class="twt"><a href="${esc(t.url)}" target="_blank" rel="noopener">${esc(t.text.slice(0,160))}${t.text.length>160?'…':''}</a>
+        <div class="te">${fmt(t.likes)} 赞 · ${fmt(t.retweets)} 转 · ${fmt(t.bookmarks)} 收藏 · ${fmt(t.views)} 浏览</div></div>`).join('');
+    }else{
+      plist=posts.map(t=>`<div class="twt"><a href="${esc(t.url)}" target="_blank" rel="noopener">${esc(t.title)}</a>
+        ${t.snippet?`<div class="te">${esc(t.snippet.slice(0,110))}…</div>`:''}</div>`).join('');
+    }
+    const meta=platform==='x'?`${fmt(c.followers||0)} 粉丝`:'RSS';
+    const link=platform==='x'?`https://x.com/${c.handle}`:c.feed.replace('/feed','');
+    return `<div class="scard" data-id="${esc(platform==='x'?c.handle:c.slug)}">
+      <div class="scard-h">
+        ${c.avatar?`<img src="${esc(c.avatar)}" referrerpolicy="no-referrer" onerror="this.style.visibility='hidden'">`:'<div style="width:44px;height:44px;border-radius:50%;background:var(--line);flex:none"></div>'}
+        <div style="min-width:0"><div class="nm">${esc(c.name)}${c.analysis?' <span style="color:#C6407A">◆</span>':''}</div>
+          <div class="meta">${esc(c.desc||'')}</div></div>
+        <div class="foll">${meta}<br><span class="caret">▸</span></div>
+      </div>
+      <div class="scard-body">
+        ${c.analysis?analysisHTML(c.analysis,'内容分析'):''}
+        <div class="exp-posts"><div class="ph">${platform==='x'?'🏆 高赞推文':'📄 近期文章'}</div>${plist}
+        <div style="margin-top:10px"><a href="${esc(link)}" target="_blank" rel="noopener" class="sm" style="color:#C6407A">${platform==='x'?'在 X 查看':'查看刊物'} →</a></div></div>
+      </div>
+    </div>`;
+  }
+  function renderSrc(el,list,platform){
+    if(!list||!list.length){$(el).innerHTML='<div class="empty-big">暂无数据。运行 scripts/'+(platform==='x'?'x_creator':'substack_creator')+'.mjs</div>';return;}
+    $(el).innerHTML=list.map(c=>srcCard(c,platform)).join('');
+    $(el).addEventListener('click',e=>{
+      if(e.target.closest('a'))return;
+      const h=e.target.closest('.scard-h');if(!h)return;
+      h.parentElement.classList.toggle('open');
+    });
+  }
+  if(SCAN){
+    if(SCAN.xLandscape) $('#x-landscape').innerHTML=landscapeHTML(SCAN.xLandscape,'英文 AI 圈全景（X）',SCAN.x.filter(c=>c.analysis).length+' 个账号','🎯 大V传播打法');
+    if(SCAN.subLandscape) $('#sub-landscape').innerHTML=landscapeHTML(SCAN.subLandscape,'英文深度刊物全景（Substack）',SCAN.sub.filter(c=>c.analysis).length+' 个刊物','🎯 深度刊物打法');
+    renderSrc('#x-rows',SCAN.x,'x');renderSrc('#sub-rows',SCAN.sub,'sub');
+  }
+
+  /* ══ Vault ══ */
+  function renderVault(){
+    const V=SCAN&&SCAN.vault;
+    if(!V||!V.ideas||!V.ideas.length){$('#vault-body').innerHTML='<div class="empty-big"><b>灵感库生成中…</b><br>Oracle 正在综合赛道全景 + 你的内容分析生成选题。</div>';return;}
+    const ideas=[...V.ideas].sort((a,b)=>(b.score||0)-(a.score||0));
+    $('#vault-body').innerHTML=`<div class="vgrid">${ideas.map((v,i)=>{
+      const ever=String(v.type||'').includes('常青');
+      return `<div class="vcard">
+        <span class="vrank">#${i+1} · ${v.score||''}分</span>
+        <span class="vtype ${ever?'ever':'fresh'}">${ever?'🌲 常青':'🔥 热点'}</span>
+        <div class="vt">${esc(v.title)}</div>
+        <div class="va">${esc(v.angle||'')}</div>
+        <div class="vmeta">${v.format?`<span>${esc(v.format)}</span>`:''}${v.inspiration?`<span>💡 ${esc(v.inspiration)}</span>`:''}</div>
+        <div class="vw"><b>为什么有效：</b>${esc(v.why||'')}</div>
+        <button class="vgo" data-i="${i}">用这个写草稿 →</button>
+      </div>`;
+    }).join('')}</div>`;
+    $('#vault-body').addEventListener('click',e=>{
+      const b=e.target.closest('.vgo');if(!b)return;
+      location.hash='draft';
+    });
+  }
+  if(SCAN)renderVault();
+
+  /* ══ Draft ══ */
+  function renderDraft(){
+    const d=ME&&ME.draft;
+    if(!d){$('#draft-body').innerHTML=`<div class="empty-big"><b>还没有草稿。</b><br>到「灵感库」挑一个选题，用你的语音（已从229篇提取）生成初稿。<br>
+      <span style="font-size:12px">对应命令：<code>/draft</code></span></div>`;return;}
+    $('#draft-body').innerHTML=`<div class="draftbox"><h3>选题：${esc(d.idea||'')}</h3>${esc(d.text||'')}</div>`;
+  }
+  if(ME)renderDraft();
+
+  /* ══ Council ══ */
+  function renderCouncil(){
+    const d=ME&&ME.draft;
+    if(!d||!d.council){$('#council-body').innerHTML=`<div class="empty-big"><b>还没有评审。</b><br>先在「草稿」生成一篇，6位评委会各自打分（1-10）。<br>
+      <span style="font-size:12px">对应命令：<code>/council</code></span></div>`;return;}
+    const avg=(d.council.reduce((s,r)=>s+(r.score||0),0)/d.council.length).toFixed(1);
+    $('#council-body').innerHTML=`<div class="draftbox" style="margin-bottom:16px;max-width:none"><b>综合分：${avg}/10</b> ${avg>=9?'✅ 通过':'⚠️ 建议修改'}</div>
+      <div class="cscore">${d.council.map(r=>`<div class="creview"><div class="ch"><span class="cn">${esc(r.name)}</span><span class="cs">${r.score}</span></div>
+        <div class="cbody">${esc(r.comment||'')}</div></div>`).join('')}</div>`;
+  }
+  if(ME)renderCouncil();
+
+  $('#dlg-x').onclick=()=>$('#dlg').close();
+  $('#dlg-c').onclick=async()=>{try{await navigator.clipboard.writeText($('#dlg-t').value);$('#dlg-c').textContent='已复制';setTimeout(()=>$('#dlg-c').textContent='复制',1400)}catch{$('#dlg-t').select()}};
+  $('#dlg').addEventListener('click',e=>{if(e.target===$('#dlg'))$('#dlg').close()});
+})();
+</script>
+<script>
+/* ── EN / 中文 toggle ──────────────────────────────────────────────
+   Chinese is the source in the DOM. When EN is active we swap exact-match
+   text nodes via this dictionary, and a MutationObserver re-applies it to
+   anything rendered afterwards (sorting, expanding, view switches).
+   Strings mixed with data (e.g. "笔记 · 229") aren't swapped — only pure labels. */
+(function(){
+  const DICT = {
+    // sidebar
+    '我':'Me','我的内容':'My Content','来源':'Sources','小红书 创作者':'Xiaohongshu Creators',
+    'X 账号':'X Accounts','流程':'Pipeline','灵感库':'Vault','草稿':'Draft','评审团':'Council',
+    // profile / stat cards
+    '粉丝':'Followers','关注':'Following','获赞':'Likes','获藏':'Saves',
+    '笔记数':'Posts','总收藏':'Total Saves','互动中位数':'Median Engagement','收藏率中位数':'Median Save Rate',
+    '每篇 (赞+藏+评+转)':'per post (L+S+C+R)','藏 ÷ 赞 · >1 = 值得收藏':'saves ÷ likes · >1 = save-worthy',
+    '创作者':'Creators','多领域':'Multi-beat','覆盖':'Coverage','头部创作者':'Top Creator',
+    // charts
+    '互动构成 · 按月':'Engagement mix · monthly','互动中位数 · 按月':'Median engagement · monthly',
+    '赞':'Likes','藏':'Saves','转发':'Shares','评':'Cmt','转':'Rt','分类':'Category','笔记':'Posts','收藏率':'Save rate','领域':'Beats',
+    // analysis
+    '内容分析':'Content Analysis','内容主题分布':'Content themes','热门主题':'Top themes',
+    '爆款为什么爆':'Why the hits hit','该多做':'Do more','可借鉴':'Borrow this','该少做 / 盲区':'Do less / blind spots',
+    '可填补的空白':'Gaps you can fill','常用钩子':'Recurring hooks','受众':'Audience',
+    '常青主题':'Evergreen','可反复做':'repeatable','当下热点':'Hot now','有时效':'time-boxed',
+    '你的机会空白':'Your opening','赛道全景分析':'Landscape',
+    // buttons / search
+    '★ 爆款':'★ hits','搜索标题…':'Search titles…','搜索名字或标题…':'Search name or title…',
+    '仅 ⚡':'⚡ only','导出 ⚡':'Export ⚡','全部领域':'All beats',
+    // vault / draft / council
+    '热点':'Hot','常青':'Evergreen','用这个写草稿 →':'Draft this →','近期笔记':'Recent posts',
+    '综合分：':'Average: ','建议修改':'needs revision','通过':'passed','返回创作者列表':'← back to creators',
+    // chart subtitles
+    '近 18 个有发布的月份 · 赞 / 藏 / 转发 叠加':'last 18 active months · likes/saves/shares stacked',
+    '每篇笔记的中位互动 (赞+藏+评+转)，看趋势而非绝对值':'median per post — trend, not absolute value',
+    // section headers (creators view stat labels)
+    '扫描 393 篇笔记':'393 notes scanned','出现在 2+ 关键词下':'appear under 2+ keywords',
+    '搜索的关键词':'keywords searched','总互动':'total engagement',
+    // misc
+    '灰色项目会在你':'Greyed items light up','运行流程后激活。':'as you run the pipeline.',
+    '没有匹配的笔记。':'No matching posts.','没有匹配的创作者。':'No matching creators.',
+    '为什么有效：':'Why it works: ','在小红书打开 →':'Open on Xiaohongshu →','在小红书查看全部 →':'See all on Xiaohongshu →',
+  };
+  const REV = {}; for(const k in DICT) REV[DICT[k]]=k;
+
+  function swap(root, map){
+    const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const hits = [];
+    let n; while(n=w.nextNode()){ const t=n.nodeValue.trim(); if(map[t]) hits.push(n); }
+    for(const node of hits){ node.nodeValue = node.nodeValue.replace(node.nodeValue.trim(), map[node.nodeValue.trim()]); }
+  }
+
+  let lang = window.CM_LANG || 'zh';
+  const btn = document.getElementById('langtoggle');
+  function applyAll(){ if(lang==='en') swap(document.body, DICT); btn.textContent = lang==='en' ? '中' : 'EN'; }
+
+  // auto-translate anything rendered later, while in EN
+  const obs = new MutationObserver(muts=>{
+    if(lang!=='en') return;
+    for(const m of muts) for(const node of m.addedNodes) if(node.nodeType===1) swap(node, DICT);
+  });
+  obs.observe(document.body, {childList:true, subtree:true});
+
+  btn.onclick = ()=>{
+    if(lang==='en'){ swap(document.body, REV); lang='zh'; }
+    else { swap(document.body, DICT); lang='en'; }
+    try{ localStorage.setItem('cm.lang', lang); }catch(e){}
+    btn.textContent = lang==='en' ? '中' : 'EN';
+  };
+  try{ const saved=localStorage.getItem('cm.lang'); if(saved) lang=saved; }catch(e){}
+  const qp=new URLSearchParams(location.search).get('lang'); if(qp==='en'||qp==='zh') lang=qp;
+  applyAll();
+})();
+</script>
+</body>
+</html>

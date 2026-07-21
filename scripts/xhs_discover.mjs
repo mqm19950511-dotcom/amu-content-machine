@@ -63,8 +63,10 @@ async function search(kw, attempt = 1) {
       if (!name) continue;
       notes++;
       const id = u.userid || u.user_id || u.id || name;
-      if (!authors.has(id)) authors.set(id, { name, id, hits: 0, eng: 0, col: 0, kws: new Set(), titles: [] });
+      const avatar = String(u.images || u.image || u.avatar || '').split('?')[0];
+      if (!authors.has(id)) authors.set(id, { name, id, avatar, hits: 0, eng: 0, col: 0, kws: new Set(), titles: [] });
       const a = authors.get(id);
+      if (!a.avatar && avatar) a.avatar = avatar;
       a.hits++;
       a.eng += Number(n.liked_count) || 0;
       a.col += Number(n.collected_count) || 0;
