@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Content Machine · 架构</title>
+<style>
+  :root{
+    --cream:#F7F3E9; --ink:#0F0F0F; --muted:#6E6C62; --line:#E7E1D2;
+    --yellow:#EDE5A6; --pink:#F7D5E5; --sage:#C9D3A4; --peri:#CDD1F0; --card:#FFF;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--cream);color:var(--ink);
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB",sans-serif;
+    padding:40px 28px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto}
+  h1{font-size:30px;font-weight:600;letter-spacing:-.02em;margin-bottom:4px}
+  h1 b{color:#C6407A}
+  .sub{color:var(--muted);font-size:14px;margin-bottom:34px}
+  .layer{margin-bottom:14px}
+  .ltag{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px;font-weight:600}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .box{background:var(--card);border-radius:16px;padding:15px 17px;flex:1;min-width:150px;border:1px solid var(--line)}
+  .box .t{font-weight:600;font-size:14px;margin-bottom:3px}
+  .box .d{font-size:12px;color:var(--muted);line-height:1.5}
+  .box .code{font-size:11px;color:#8A867B;font-family:ui-monospace,Menlo,monospace;margin-top:6px}
+  .b-yellow{background:var(--yellow);border-color:var(--yellow)}
+  .b-pink{background:var(--pink);border-color:var(--pink)}
+  .b-sage{background:var(--sage);border-color:var(--sage)}
+  .b-peri{background:var(--peri);border-color:var(--peri)}
+  .arrow{text-align:center;color:#C6B9A0;font-size:20px;margin:6px 0;line-height:1}
+  .pipe{display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
+  .pstep{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;flex:1;min-width:130px;position:relative}
+  .pstep .n{font-size:11px;color:var(--muted)}
+  .pstep .t{font-weight:600;font-size:14px;margin:2px 0 3px}
+  .pstep .d{font-size:11.5px;color:var(--muted);line-height:1.45}
+  .pstep.opt{border-style:dashed}
+  .pconn{display:flex;align-items:center;color:#C6B9A0;font-size:18px;padding:0 3px}
+  .note{background:var(--ink);color:#fff;border-radius:16px;padding:20px 22px;margin-top:26px}
+  .note h3{font-size:14px;margin-bottom:12px;color:var(--yellow)}
+  .note .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .note .g .gt{font-size:12.5px;font-weight:600;margin-bottom:4px}
+  .note .g .gd{font-size:12px;color:#B9B6AC;line-height:1.55}
+  .note code{background:#2B2B28;padding:1px 6px;border-radius:5px;font-size:11.5px}
+  .badge{display:inline-block;font-size:10px;background:#C6407A;color:#fff;padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:middle}
+  @media(max-width:720px){.note .grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Content <b>Machine</b> · 架构</h1>
+  <p class="sub">一个本地运行的内容情报 + 创作系统。输入一个小红书 ID，它把你和你关注的人全部拉下来、分析、可视化，再帮你把选题写成帖。</p>
+
+  <!-- Layer 1: sources -->
+  <div class="layer">
+    <div class="ltag">① 数据源</div>
+    <div class="row">
+      <div class="box b-yellow"><div class="t">你自己</div><div class="d">你的每一篇笔记 + 公开互动</div><div class="code">小红书 ID</div></div>
+      <div class="box"><div class="t">小红书创作者</div><div class="d">你赛道里的头部账号</div><div class="code">关键词发现 + 抓取</div></div>
+      <div class="box"><div class="t">X 账号</div><div class="d">你关注的 AI Builder</div><div class="code">TikHub</div></div>
+      <div class="box"><div class="t">Substack</div><div class="d">你订阅的深度刊物</div><div class="code">免费 RSS</div></div>
+    </div>
+  </div>
+  <div class="arrow">↓ &nbsp;抓取（TikHub API / 你的 cookie / RSS）</div>
+
+  <!-- Layer 2: local storage -->
+  <div class="layer">
+    <div class="ltag">② 本地存储 · 全部 gitignored，不上传</div>
+    <div class="row">
+      <div class="box"><div class="t">me.json</div><div class="d">你的资料 + 229 篇笔记</div></div>
+      <div class="box"><div class="t">creators/ · creators_x/ · creators_sub/</div><div class="d">每个账号的帖子 + 互动</div></div>
+      <div class="box"><div class="t">.env.local</div><div class="d">你的 API keys（TikHub / Mistral）</div><div class="code">永不进 git</div></div>
+    </div>
+  </div>
+  <div class="arrow">↓ &nbsp;分析（并行 Claude agents）</div>
+
+  <!-- Layer 3: analysis -->
+  <div class="layer">
+    <div class="ltag">③ AI 分析</div>
+    <div class="row">
+      <div class="box b-peri"><div class="t">逐账号分析</div><div class="d">这个人在做什么、为什么火、可借鉴什么</div></div>
+      <div class="box b-peri"><div class="t">赛道全景</div><div class="d">热门主题 · 常青 vs 热点 · 你的机会空白</div></div>
+      <div class="box b-peri"><div class="t">你的内容分析</div><div class="d">什么爆、该多做、你的爆款配方</div></div>
+      <div class="box b-peri"><div class="t">你的语音</div><div class="d">从你的帖提取的写作风格</div><div class="code">voice.json</div></div>
+    </div>
+  </div>
+  <div class="arrow">↓ &nbsp;<code style="background:#EFE9DA;padding:1px 6px;border-radius:5px">build_dashboard.mjs</code></div>
+
+  <!-- Layer 4: dashboard -->
+  <div class="layer">
+    <div class="ltag">④ 本地看板 · localhost</div>
+    <div class="box b-sage" style="text-align:center;padding:16px">
+      <div class="t">看板：我的内容 · 图表 · 三个平台的全景 + 逐账号分析</div>
+      <div class="d">全本地，一个 no-cache 服务器起在 localhost；EN / 中 一键切换</div>
+    </div>
+  </div>
+
+  <div class="arrow" style="margin:22px 0 14px">↓ &nbsp;情报喂给创作流程</div>
+
+  <!-- pipeline -->
+  <div class="ltag">⑤ 创作流程</div>
+  <div class="pipe">
+    <div class="pstep"><div class="n">01</div><div class="t">灵感库</div><div class="d">综合空白+爆款配方，排序选题</div></div>
+    <div class="pconn">→</div>
+    <div class="pstep opt"><div class="n">02 · 可选</div><div class="t">访谈 <span class="badge">语音</span></div><div class="d">苏格拉底式追问，逼出你真实的想法</div></div>
+    <div class="pconn">→</div>
+    <div class="pstep"><div class="n">03</div><div class="t">草稿</div><div class="d">用你的语音结构化，每句可追溯到你</div></div>
+    <div class="pconn">→</div>
+    <div class="pstep"><div class="n">04</div><div class="t">评审团</div><div class="d">6 位评委打分，含 AI 味过敏师</div></div>
+  </div>
+
+  <div class="note">
+    <h3>数据怎么存 · 隐私</h3>
+    <div class="grid">
+      <div class="g"><div class="gt">代码上 GitHub（可分享）</div><div class="gd">抓取脚本、分析流程、看板 UI、命令。任何人 clone 下来，跑 <code>/onboard &lt;自己的ID&gt;</code> 就能重建整套。</div></div>
+      <div class="g"><div class="gt">数据留本地（不上传）</div><div class="gd">你的笔记、分析、语音、草稿、图片、keys —— 全部 gitignored。你的内容永远不离开你的电脑。</div></div>
+      <div class="g"><div class="gt">Keys 在 .env.local</div><div class="gd">TikHub 抓数据、Mistral Voxtral 做语音访谈。都不进 git。也可以用你自己的登录 cookie，免费。</div></div>
+      <div class="g"><div class="gt">一切可从 ID 重建</div><div class="gd">数据是一次性的、可再生的。脚本才是产品。换个 ID 就是另一个人的看板。</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

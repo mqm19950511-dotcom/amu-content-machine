@@ -75,3 +75,7 @@ IMG_*.png
 IMG_*.PNG
 IMG_*.JPEG
 IMG_* *.JPG
+
+# Personal deliverables (your specific content)
+docs/口播稿.md
+docs/*.script.md

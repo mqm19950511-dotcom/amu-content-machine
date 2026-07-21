@@ -238,6 +238,22 @@
   .vmeta span{font-size:11px;background:var(--cream);border:1px solid var(--line);border-radius:999px;padding:3px 9px}
   .vcard .vgo{margin-top:12px;font-size:12px;color:#C6407A;background:none;border:0;cursor:pointer;padding:0;font-weight:500}
 
+  /* voice recorder */
+  .vrec{background:var(--card);border-radius:16px;padding:18px;margin-bottom:16px}
+  .vrec-head{display:flex;align-items:baseline;gap:10px;margin-bottom:13px;flex-wrap:wrap}
+  .vrec-t{font-weight:600;font-size:14px}
+  .vrec-hint{font-size:11.5px;color:var(--muted)}
+  .vrec-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .vrec-btn{font:inherit;font-size:13px;font-weight:500;border:0;border-radius:999px;padding:10px 20px;cursor:pointer;
+    background:var(--ink);color:#fff}
+  .vrec-btn:hover{background:#2B2B28}
+  .vrec-btn.rec{background:#C6407A;animation:pulse 1.2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.6}}
+  .vrec-status{font-size:12.5px;color:var(--muted)}
+  .vrec-out{width:100%;min-height:70px;font:inherit;font-size:13.5px;line-height:1.6;border:1px solid var(--line);
+    border-radius:12px;padding:12px;background:var(--cream);resize:vertical;color:var(--ink)}
+  .vrec-actions{display:flex;gap:8px;margin-top:10px}
+
   /* interview */
   .qa{background:var(--card);border-radius:14px;padding:16px 18px;margin-bottom:10px}
   .qa .q{font-weight:600;font-size:13.5px;margin-bottom:7px;display:flex;gap:8px}
@@ -422,6 +438,19 @@
   <section class="view" id="v-interview">
     <div style="margin-bottom:16px"><h1>访谈 <span style="font-size:14px;color:var(--muted);font-weight:400">· 可选，但这是防 AI 味的关键</span></h1>
       <p class="sub">草稿有两种来源。<b>只用你的语音</b>——快，但AI会替你编内容。<b>先做一轮苏格拉底式访谈</b>——它一次问一个问题，逼你说出具体的数字、故事、观点，然后草稿只是把你说过的话结构化，每句都能追溯到你本人。这一步是整个系统里最重要的。</p></div>
+    <div class="vrec" id="vrec">
+      <div class="vrec-head"><span class="vrec-t">🎙️ 语音回答</span>
+        <span class="vrec-hint">说出你的答案，转成文字，粘贴到对话里回答访谈。用 Mistral Voxtral，音频不落盘。</span></div>
+      <div class="vrec-row">
+        <button class="vrec-btn" id="vrec-btn">开始录音</button>
+        <span class="vrec-status" id="vrec-status">点一下开始说</span>
+      </div>
+      <textarea class="vrec-out" id="vrec-out" placeholder="转录的文字会出现在这里…" readonly></textarea>
+      <div class="vrec-actions" id="vrec-actions" hidden>
+        <button class="btn ghost" id="vrec-copy">复制</button>
+        <button class="btn ghost" id="vrec-clear">清空</button>
+      </div>
+    </div>
     <div id="interview-body"></div>
   </section>
 
@@ -894,6 +923,37 @@
   }
   if(ME)renderInterview();
 
+  /* ══ voice recorder (Mistral Voxtral via serve.mjs /api/transcribe) ══ */
+  (function(){
+    const btn=$('#vrec-btn'), status=$('#vrec-status'), out=$('#vrec-out'), actions=$('#vrec-actions');
+    if(!btn) return;
+    let rec, chunks=[], recording=false;
+    btn.onclick=async()=>{
+      if(recording){ rec.stop(); return; }
+      if(location.protocol==='file:'){ status.textContent='请用 node scripts/serve.mjs 打开（file:// 不能录音）'; return; }
+      try{
+        const stream=await navigator.mediaDevices.getUserMedia({audio:true});
+        rec=new MediaRecorder(stream); chunks=[];
+        rec.ondataavailable=e=>chunks.push(e.data);
+        rec.onstop=async()=>{
+          stream.getTracks().forEach(t=>t.stop());
+          btn.classList.remove('rec'); btn.textContent='开始录音'; recording=false;
+          status.textContent='转录中…';
+          const blob=new Blob(chunks,{type:rec.mimeType||'audio/webm'});
+          try{
+            const r=await fetch('/api/transcribe',{method:'POST',headers:{'Content-Type':blob.type},body:blob});
+            const j=await r.json();
+            if(j.text){ out.value=(out.value?out.value+' ':'')+j.text; actions.hidden=false; status.textContent='完成 · 可以继续说，会接在后面'; }
+            else status.textContent='转录失败：'+(j.error||JSON.stringify(j.raw||{}).slice(0,80));
+          }catch(e){ status.textContent='转录出错（服务器没起？跑 node scripts/serve.mjs）'; }
+        };
+        rec.start(); recording=true; btn.classList.add('rec'); btn.textContent='停止'; status.textContent='录音中…再点一下停止';
+      }catch(e){ status.textContent='拿不到麦克风权限'; }
+    };
+    $('#vrec-copy').onclick=async()=>{ try{await navigator.clipboard.writeText(out.value); $('#vrec-copy').textContent='已复制'; setTimeout(()=>$('#vrec-copy').textContent='复制',1200);}catch(e){out.removeAttribute('readonly');out.select();} };
+    $('#vrec-clear').onclick=()=>{ out.value=''; actions.hidden=true; status.textContent='点一下开始说'; };
+  })();
+
   /* ══ Draft ══ */
   function renderDraft(){
     const d=ME&&ME.draft;
@@ -965,6 +1025,14 @@
     'AI 用你的写作风格（已从你的历史笔记提取）生成初稿，内容由它替你编——更快，但更容易空洞、更容易被评审团的「AI 味过敏师」打回。适合你已经很清楚要写什么的时候。':
       'The AI drafts in your voice (extracted from your past posts) but makes up the content for you — faster, but emptier and more likely to get sent back by the Council\'s AI-Slop Allergist. Fine when you already know exactly what to say.',
     '直接运行':'Just run',
+    // voice recorder
+    '🎙️ 语音回答':'🎙️ Voice answer','开始录音':'Start recording','停止':'Stop',
+    '点一下开始说':'Tap to start speaking','复制':'Copy','清空':'Clear','已复制':'Copied',
+    '说出你的答案，转成文字，粘贴到对话里回答访谈。用 Mistral Voxtral，音频不落盘。':
+      'Speak your answer, get text, paste it into the chat to answer the interview. Mistral Voxtral; audio is never saved.',
+    '转录的文字会出现在这里…':'Transcribed text appears here…',
+    '录音中…再点一下停止':'Recording… tap again to stop','转录中…':'Transcribing…',
+    '完成 · 可以继续说，会接在后面':'Done · keep talking, it appends',
     '· 可选，但这是防 AI 味的关键':'· optional, but this is the key to killing AI slop',
     '草稿有两种来源。':'A draft can come from two places. ',
     '只用你的语音':'Voice only',
