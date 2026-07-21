@@ -238,6 +238,20 @@
   .vmeta span{font-size:11px;background:var(--cream);border:1px solid var(--line);border-radius:999px;padding:3px 9px}
   .vcard .vgo{margin-top:12px;font-size:12px;color:#C6407A;background:none;border:0;cursor:pointer;padding:0;font-weight:500}
 
+  /* interview */
+  .qa{background:var(--card);border-radius:14px;padding:16px 18px;margin-bottom:10px}
+  .qa .q{font-weight:600;font-size:13.5px;margin-bottom:7px;display:flex;gap:8px}
+  .qa .q .who{flex:none;font-size:11px;color:#fff;background:var(--ink);border-radius:999px;padding:2px 9px;height:fit-content}
+  .qa .a{font-size:13.5px;line-height:1.6;color:#3A3833;white-space:pre-wrap}
+  .ivopt{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:18px}
+  @media(max-width:820px){.ivopt{grid-template-columns:1fr}}
+  .ivcard{border:1px solid var(--line);border-radius:16px;padding:18px}
+  .ivcard.reco{border-color:var(--ink);border-width:2px}
+  .ivcard h4{font-size:14px;font-weight:600;margin-bottom:6px}
+  .ivcard .tag{font-size:10px;padding:2px 8px;border-radius:999px;background:var(--yellow);margin-left:6px}
+  .ivcard p{font-size:12.5px;color:var(--muted);line-height:1.55}
+  .ivcard code{font-size:12px}
+
   /* draft + council */
   .draftbox{background:var(--card);border-radius:var(--r);padding:24px;max-width:680px;white-space:pre-wrap;font-size:15px;line-height:1.75}
   .draftbox h3{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;font-weight:600}
@@ -277,6 +291,7 @@
     <button data-v="sub"><span class="ic">✉</span>Substack</button>
     <div class="navlabel navgap">流程</div>
     <button data-v="vault"><span class="ic">◇</span>灵感库</button>
+    <button data-v="interview"><span class="ic">◎</span>访谈 <span style="opacity:.5;font-size:11px">可选</span></button>
     <button data-v="draft"><span class="ic">▤</span>草稿</button>
     <button data-v="council"><span class="ic">★</span>评审团</button>
   </nav>
@@ -401,6 +416,13 @@
       <p class="sub">Oracle 综合了赛道全景（空白/常青/热点）+ 你的内容分析（爆款配方）+ 创作者打法，生成的排序选题。
       挑一个 → 到「草稿」用你的风格写出来。</p></div>
     <div id="vault-body"></div>
+  </section>
+
+  <!-- ══ INTERVIEW (optional) ══ -->
+  <section class="view" id="v-interview">
+    <div style="margin-bottom:16px"><h1>访谈 <span style="font-size:14px;color:var(--muted);font-weight:400">· 可选，但这是防 AI 味的关键</span></h1>
+      <p class="sub">草稿有两种来源。<b>只用你的语音</b>——快，但AI会替你编内容。<b>先做一轮苏格拉底式访谈</b>——它一次问一个问题，逼你说出具体的数字、故事、观点，然后草稿只是把你说过的话结构化，每句都能追溯到你本人。这一步是整个系统里最重要的。</p></div>
+    <div id="interview-body"></div>
   </section>
 
   <!-- ══ DRAFT ══ -->
@@ -851,12 +873,37 @@
   }
   if(SCAN)renderVault();
 
+  /* ══ Interview (optional) ══ */
+  function renderInterview(){
+    const iv=ME&&ME.draft&&ME.draft.interview;
+    if(iv&&iv.qa&&iv.qa.length){
+      $('#interview-body').innerHTML=`<div style="margin-bottom:12px;font-size:13px;color:var(--muted)">选题：<b style="color:var(--ink)">${esc(iv.idea||ME.draft.idea||'')}</b> · 已捕获 ${iv.qa.length} 轮问答，草稿据此生成。</div>`+
+        iv.qa.map(x=>`<div class="qa"><div class="q"><span class="who">${esc(x.who||'访谈')}</span>${esc(x.q)}</div><div class="a">${esc(x.a)}</div></div>`).join('');
+      return;
+    }
+    $('#interview-body').innerHTML=`<div class="ivopt">
+      <div class="ivcard reco"><h4>做一轮访谈<span class="tag">推荐</span></h4>
+        <p>它一次问你一个问题，追问到你给出具体的数字、名字、故事、你改变想法的瞬间。你说的话被记录下来，草稿只做结构化——每一句都是你的。这就是防 AI 味的核心：AI 不发明观点，只整理你的观点。</p>
+        <p style="margin-top:9px;color:var(--ink)">在 Claude Code 里运行 <code>/interview</code></p></div>
+      <div class="ivcard"><h4>跳过，只用语音</h4>
+        <p>AI 用你的写作风格（已从你的历史笔记提取）生成初稿，内容由它替你编——更快，但更容易空洞、更容易被评审团的「AI 味过敏师」打回。适合你已经很清楚要写什么的时候。</p>
+        <p style="margin-top:9px;color:var(--ink)">直接运行 <code>/draft</code></p></div>
+    </div>
+    <div class="empty-big" style="text-align:left"><b>为什么访谈是最重要的一步</b><br>
+    杠杆在访谈这一步，不在写作那一步。写作是最容易的部分。AI slop 的根源不是模型不够聪明，是你没把脑子里真正的东西掏出来。</div>`;
+  }
+  if(ME)renderInterview();
+
   /* ══ Draft ══ */
   function renderDraft(){
     const d=ME&&ME.draft;
     if(!d){$('#draft-body').innerHTML=`<div class="empty-big"><b>还没有草稿。</b><br>到「灵感库」挑一个选题，用你的语音（已从229篇提取）生成初稿。<br>
       <span style="font-size:12px">对应命令：<code>/draft</code></span></div>`;return;}
-    $('#draft-body').innerHTML=`<div class="draftbox"><h3>选题：${esc(d.idea||'')}</h3>${esc(d.text||'')}</div>`;
+    const grounded=d.interview&&d.interview.qa&&d.interview.qa.length;
+    const badge=grounded
+      ? `<span style="font-size:11px;background:var(--sage);padding:3px 9px;border-radius:999px;margin-left:8px">✓ 基于 ${d.interview.qa.length} 轮访谈</span>`
+      : `<span style="font-size:11px;background:var(--cream);border:1px solid var(--line);padding:3px 9px;border-radius:999px;margin-left:8px">仅语音生成，未访谈</span>`;
+    $('#draft-body').innerHTML=`<div class="draftbox"><h3>选题：${esc(d.idea||'')} ${badge}</h3>${esc(d.text||'')}</div>`;
   }
   if(ME)renderDraft();
 
@@ -908,6 +955,25 @@
     // vault / draft / council
     '热点':'Hot','常青':'Evergreen','用这个写草稿 →':'Draft this →','近期笔记':'Recent posts',
     '综合分：':'Average: ','建议修改':'needs revision','通过':'passed','返回创作者列表':'← back to creators',
+    // interview
+    '访谈':'Interview','可选':'optional','推荐':'recommended',
+    '做一轮访谈':'Run an interview','跳过，只用语音':'Skip, voice only',
+    '为什么访谈是最重要的一步':'Why the interview is the most important step',
+    '它一次问你一个问题，追问到你给出具体的数字、名字、故事、你改变想法的瞬间。你说的话被记录下来，草稿只做结构化——每一句都是你的。这就是防 AI 味的核心：AI 不发明观点，只整理你的观点。':
+      'It asks one question at a time, pushing until you give a real number, name, story, or the moment you changed your mind. What you say gets captured; the draft only structures it — every line is yours. This is the whole anti-slop point: the AI never invents your opinions, it only arranges them.',
+    '在 Claude Code 里运行':'In Claude Code, run',
+    'AI 用你的写作风格（已从你的历史笔记提取）生成初稿，内容由它替你编——更快，但更容易空洞、更容易被评审团的「AI 味过敏师」打回。适合你已经很清楚要写什么的时候。':
+      'The AI drafts in your voice (extracted from your past posts) but makes up the content for you — faster, but emptier and more likely to get sent back by the Council\'s AI-Slop Allergist. Fine when you already know exactly what to say.',
+    '直接运行':'Just run',
+    '· 可选，但这是防 AI 味的关键':'· optional, but this is the key to killing AI slop',
+    '草稿有两种来源。':'A draft can come from two places. ',
+    '只用你的语音':'Voice only',
+    '——快，但AI会替你编内容。':' — fast, but the AI makes up your content. ',
+    '先做一轮苏格拉底式访谈':'A Socratic interview first',
+    '——它一次问一个问题，逼你说出具体的数字、故事、观点，然后草稿只是把你说过的话结构化，每句都能追溯到你本人。这一步是整个系统里最重要的。':
+      ' — it asks one question at a time until you produce a real number, story, or opinion; the draft then just structures what you said, every line traceable to you. This is the single most important step.',
+    '杠杆在访谈这一步，不在写作那一步。写作是最容易的部分。AI slop 的根源不是模型不够聪明，是你没把脑子里真正的东西掏出来。':
+      'The leverage is in the interview, not the writing. Writing is the easy part. AI slop comes not from the model being dumb, but from you never getting what\'s actually in your head out of it.',
     // chart subtitles
     '近 18 个有发布的月份 · 赞 / 藏 / 转发 叠加':'last 18 active months · likes/saves/shares stacked',
     '每篇笔记的中位互动 (赞+藏+评+转)，看趋势而非绝对值':'median per post — trend, not absolute value',
