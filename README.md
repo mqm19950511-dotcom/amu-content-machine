@@ -46,8 +46,9 @@ node scripts/build_dashboard.mjs            # build
 node scripts/serve.mjs                       # → http://localhost:8420
 ```
 
-See `.claude/commands/onboard.md` for the full flow. Needs a [TikHub](https://tikhub.io) API
-key (~a few cents per onboarding); Substack is free RSS.
+See `.claude/commands/onboard.md` for the full flow. The pullers in this repo happen to be
+built on a third-party data API (TikHub — that's just how this implementation does it, not an
+endorsement; swap in your own data source, or use your own login cookie). Substack is plain RSS.
 
 ## Setup
 
@@ -67,9 +68,11 @@ Paste in 10–20 of your best-performing posts. This writes `voice/voice-guide.m
 everything else calibrates against. Then fill in `voice/style-guide.md` by hand (who you are,
 what you're promoting, what you'll never say).
 
-Optional but recommended: install [Wispr Flow](https://wisprflow.ai) or any voice-to-text
-tool. The interview step works far better spoken than typed — you say things out loud that
-you'd never bother typing.
+One observation from use: the interview step works far better spoken than typed — you say
+things out loud that you'd never bother typing. This implementation wires the dashboard's
+interview voice input to Mistral's Voxtral for transcription (needs `MISTRAL_API_KEY` in
+`.env.local`; that's just how we built it, not an endorsement — swap in any transcription
+you like). Typing works fine without any of it, as does whatever dictation tool you already use.
 
 ## Daily use
 
