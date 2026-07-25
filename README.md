@@ -127,20 +127,25 @@ per-platform rules in the voice guide.
 ```
 content_machine/
 ├── CLAUDE.md                    # orchestration rules Claude reads every session
+├── LICENSE · CONTRIBUTING.md · .env.example
 ├── .claude/
-│   ├── commands/                # the six steps + bootstrap
-│   └── agents/                  # council members as parallel subagents
-├── voice/
-│   ├── style-guide.md           # identity, promotion targets, hard constraints
-│   ├── voice-guide.md           # generated: hooks, structures, patterns
-│   └── content-lessons.md       # append-only log of past mistakes
+│   ├── commands/                # the six steps + onboard/scan/cover
+│   ├── agents/                  # council members as parallel subagents
+│   └── skills/content-scout/    # mine your email + meeting notes for ideas
+├── scripts/                     # dependency-free Node: pullers, digests,
+│   │                            #   build_dashboard, serve, cover, init.sh
+├── dashboard/index.html         # local dashboard UI (data files gitignored)
+├── voice/*.template.md          # style/voice/lessons templates
+│                                #   (your filled-in copies stay local)
 ├── personas/
 │   ├── interview-panel.md       # the six interviewers
 │   └── writers-council.md       # the six reviewers + rubric
-├── inputs/                      # raw material for the Oracle
-├── vault/ideas.md               # ranked idea backlog
-├── drafts/                      # one folder per piece in progress
-└── published/                   # what actually went out
+├── sources/                     # public account lists (your notes → *.local.md)
+├── docs/architecture*.png       # the diagrams above (EN + 中文)
+├── inputs/                      # raw material for the Oracle (local)
+├── vault/ideas.template.md      # idea backlog: /oracle + 📮 email + 🎙️ meetings
+├── drafts/                      # one folder per piece in progress (local)
+└── published/                   # what actually went out (local)
 ```
 
 ## What's public and what isn't
