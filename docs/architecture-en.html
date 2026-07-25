@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Content Machine · Architecture</title>
+<style>
+  :root{
+    --cream:#F7F3E9; --ink:#0F0F0F; --muted:#6E6C62; --line:#E7E1D2;
+    --yellow:#EDE5A6; --pink:#F7D5E5; --sage:#C9D3A4; --peri:#CDD1F0; --card:#FFF;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--cream);color:var(--ink);
+    font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB",sans-serif;
+    padding:40px 28px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1080px;margin:0 auto}
+  h1{font-size:30px;font-weight:600;letter-spacing:-.02em;margin-bottom:4px}
+  h1 b{color:#C6407A}
+  .sub{color:var(--muted);font-size:14px;margin-bottom:34px}
+  .layer{margin-bottom:14px}
+  .ltag{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px;font-weight:600}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .box{background:var(--card);border-radius:16px;padding:15px 17px;flex:1;min-width:150px;border:1px solid var(--line)}
+  .box .t{font-weight:600;font-size:14px;margin-bottom:3px}
+  .box .d{font-size:12px;color:var(--muted);line-height:1.5}
+  .box .code{font-size:11px;color:#8A867B;font-family:ui-monospace,Menlo,monospace;margin-top:6px}
+  .b-yellow{background:var(--yellow);border-color:var(--yellow)}
+  .b-pink{background:var(--pink);border-color:var(--pink)}
+  .b-sage{background:var(--sage);border-color:var(--sage)}
+  .b-peri{background:var(--peri);border-color:var(--peri)}
+  .arrow{text-align:center;color:#C6B9A0;font-size:20px;margin:6px 0;line-height:1}
+  .pipe{display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
+  .pstep{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;flex:1;min-width:130px;position:relative}
+  .pstep .n{font-size:11px;color:var(--muted)}
+  .pstep .t{font-weight:600;font-size:14px;margin:2px 0 3px}
+  .pstep .d{font-size:11.5px;color:var(--muted);line-height:1.45}
+  .pstep.opt{border-style:dashed}
+  .pconn{display:flex;align-items:center;color:#C6B9A0;font-size:18px;padding:0 3px}
+  .note{background:var(--ink);color:#fff;border-radius:16px;padding:20px 22px;margin-top:26px}
+  .note h3{font-size:14px;margin-bottom:12px;color:var(--yellow)}
+  .note .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .note .g .gt{font-size:12.5px;font-weight:600;margin-bottom:4px}
+  .note .g .gd{font-size:12px;color:#B9B6AC;line-height:1.55}
+  .note code{background:#2B2B28;padding:1px 6px;border-radius:5px;font-size:11.5px}
+  .badge{display:inline-block;font-size:10px;background:#C6407A;color:#fff;padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:middle}
+  @media(max-width:720px){.note .grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Content <b>Machine</b> · Architecture</h1>
+  <p class="sub">A local-first content-intelligence + creation system. Give it a Xiaohongshu (RED) ID and it pulls you and everyone you follow, analyzes it all, visualizes it — then helps you turn the openings into posts.</p>
+
+  <!-- Layer 1: sources -->
+  <div class="layer">
+    <div class="ltag">① Sources</div>
+    <div class="row">
+      <div class="box b-yellow"><div class="t">You</div><div class="d">Every post you've published + public engagement</div><div class="code">RED ID</div></div>
+      <div class="box"><div class="t">RED creators</div><div class="d">Top accounts in your niche</div><div class="code">keyword discovery + pull</div></div>
+      <div class="box"><div class="t">X accounts</div><div class="d">The AI builders you follow</div><div class="code">TikHub</div></div>
+      <div class="box"><div class="t">Substack</div><div class="d">The newsletters you read</div><div class="code">free RSS</div></div>
+    </div>
+  </div>
+  <div class="arrow">↓ &nbsp;Pull (TikHub API / your own cookie / RSS)</div>
+
+  <!-- Layer 2: local storage -->
+  <div class="layer">
+    <div class="ltag">② Local storage · all gitignored, never uploaded</div>
+    <div class="row">
+      <div class="box"><div class="t">me.json</div><div class="d">Your profile + all your posts</div></div>
+      <div class="box"><div class="t">creators/ · creators_x/ · creators_sub/</div><div class="d">Each account's posts + engagement</div></div>
+      <div class="box"><div class="t">.env.local</div><div class="d">Your API keys (TikHub / Mistral)</div><div class="code">never committed</div></div>
+    </div>
+  </div>
+  <div class="arrow">↓ &nbsp;Analyze (parallel Claude agents)</div>
+
+  <!-- Layer 3: analysis -->
+  <div class="layer">
+    <div class="ltag">③ AI analysis</div>
+    <div class="row">
+      <div class="box b-peri"><div class="t">Per-account</div><div class="d">What they make, why it performs, what to borrow</div></div>
+      <div class="box b-peri"><div class="t">Landscape</div><div class="d">Top themes · evergreen vs hot · the gaps you can fill</div></div>
+      <div class="box b-peri"><div class="t">Your content</div><div class="d">What works, what to double down on, your winning formula</div></div>
+      <div class="box b-peri"><div class="t">Your voice</div><div class="d">Writing style extracted from your own posts</div><div class="code">voice.json</div></div>
+    </div>
+  </div>
+  <div class="arrow">↓ &nbsp;<code style="background:#EFE9DA;padding:1px 6px;border-radius:5px">build_dashboard.mjs</code></div>
+
+  <!-- Layer 4: dashboard -->
+  <div class="layer">
+    <div class="ltag">④ Local dashboard · localhost</div>
+    <div class="box b-sage" style="text-align:center;padding:16px">
+      <div class="t">Dashboard: my content · charts · three-platform landscapes + per-account analysis</div>
+      <div class="d">Fully local; a no-cache server on localhost. EN / 中 toggle built in.</div>
+    </div>
+  </div>
+
+  <div class="arrow" style="margin:22px 0 14px">↓ &nbsp;Intelligence feeds the creation pipeline</div>
+
+  <!-- pipeline -->
+  <div class="ltag">⑤ Creation pipeline</div>
+  <div class="pipe">
+    <div class="pstep"><div class="n">01</div><div class="t">Vault</div><div class="d">Gaps + your formula → ranked topic ideas</div></div>
+    <div class="pconn">→</div>
+    <div class="pstep opt"><div class="n">02 · optional</div><div class="t">Interview <span class="badge">voice</span></div><div class="d">Socratic follow-ups that pull out what you actually think</div></div>
+    <div class="pconn">→</div>
+    <div class="pstep"><div class="n">03</div><div class="t">Draft</div><div class="d">Structured in your voice; every line traces back to you</div></div>
+    <div class="pconn">→</div>
+    <div class="pstep"><div class="n">04</div><div class="t">Council</div><div class="d">Six reviewers score it — incl. an AI-slop allergist</div></div>
+  </div>
+
+  <div class="note">
+    <h3>Where data lives · privacy</h3>
+    <div class="grid">
+      <div class="g"><div class="gt">Code on GitHub (shareable)</div><div class="gd">Pullers, analysis workflows, dashboard UI, commands. Anyone can clone and run <code>/onboard &lt;their-ID&gt;</code> to rebuild the whole thing.</div></div>
+      <div class="g"><div class="gt">Data stays local (never uploaded)</div><div class="gd">Your posts, analyses, voice, drafts, images, keys — all gitignored. Your content never leaves your machine.</div></div>
+      <div class="g"><div class="gt">Keys in .env.local</div><div class="gd">TikHub for pulling, Mistral Voxtral for voice interviews. Neither enters git. Your own login cookie works too, for free.</div></div>
+      <div class="g"><div class="gt">Everything rebuilds from an ID</div><div class="gd">Data is disposable and regenerable. The scripts are the product. A different ID is a different person's dashboard.</div></div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

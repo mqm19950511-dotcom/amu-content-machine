@@ -87,6 +87,7 @@ docs/*.script.md
 vault/interview-questions.json
 docs/*.png
 !docs/architecture.png
+!docs/architecture-en.png
 
 # cover generator output (personal)
 docs/cover*.png

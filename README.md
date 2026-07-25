@@ -4,7 +4,9 @@ A six-step Claude Code system that turns your raw thinking into publishable post
 the AI slop. Adapted from [Alex Lieberman's workflow](https://www.chatprd.ai/how-i-ai/alex-liebermans-6-step-workflow-to-beat-ai-slop)
 (founder of Morning Brew, now Tenex), as covered on Lenny's Newsletter's *How I AI*.
 
-![Architecture](docs/architecture.png)
+![Architecture](docs/architecture-en.png)
+
+<sub>中文版架构图见 [docs/architecture.png](docs/architecture.png)</sub>
 
 ## The idea
 
