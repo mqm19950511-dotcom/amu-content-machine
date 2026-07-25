@@ -27,7 +27,10 @@ substance still comes later from `/interview`. Scout finds the topic; it doesn't
 ## Sources
 
 ### Email (via the Gmail connector)
-The user authenticates Gmail themselves (`/mcp` → claude.ai Gmail). Then:
+**Prerequisite:** this path needs the claude.ai **Gmail connector** (available in Claude Code
+when signed in with a claude.ai account; the user authenticates via `/mcp` → claude.ai Gmail).
+If the connector isn't available in this environment, say so and offer the Granola/export path
+instead — do not try to read mail any other way. Then:
 - Search a **bounded** slice by theme, e.g. newsletters (`from:substack.com`, `category:updates`),
   or receipts (`category:purchases`, `category:reservations`) — always with `newer_than:` limits.
 - Mine each for a **content spark**, not the raw content: what angle could the user make from it,

@@ -23,7 +23,7 @@ const FEEDS = {
   'lennys-newsletter': 'https://www.lennysnewsletter.com/feed',
   'pragmatic-engineer':'https://newsletter.pragmaticengineer.com/feed',
   'big-technology':    'https://www.bigtechnology.com/feed',
-  'every':             'https://every.to/feed',
+  // 'every' removed: every.to is not a Substack and exposes no public RSS feed
   'semianalysis':      'https://www.semianalysis.com/feed',
   'chinatalk':         'https://www.chinatalk.media/feed',
   'the-generalist':    'https://www.generalist.com/feed',

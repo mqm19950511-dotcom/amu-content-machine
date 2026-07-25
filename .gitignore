@@ -67,6 +67,9 @@ dashboard/me.js
 dashboard.png
 *.reference.png
 
+# Local-only scratch space (reference images, personal files)
+local/
+
 # User-dropped reference images — local only
 IMG_*.JPG
 IMG_*.jpg

@@ -81,6 +81,11 @@ you'd never bother typing.
 /repurpose               # adapt across platforms
 ```
 
+Optional: the **content-scout** skill (`.claude/skills/content-scout/`) mines your own
+sources for topic ideas — your email (requires the claude.ai **Gmail connector**, authorized
+via `/mcp` inside Claude Code) and your local Granola meeting exports — and banks them into
+the Vault's 📮/🎙️ sections. Everything is read locally; nothing is uploaded.
+
 After you publish:
 
 ```
