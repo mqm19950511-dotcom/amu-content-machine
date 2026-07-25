@@ -4,6 +4,8 @@ A six-step Claude Code system that turns your raw thinking into publishable post
 the AI slop. Adapted from [Alex Lieberman's workflow](https://www.chatprd.ai/how-i-ai/alex-liebermans-6-step-workflow-to-beat-ai-slop)
 (founder of Morning Brew, now Tenex), as covered on Lenny's Newsletter's *How I AI*.
 
+![Architecture](docs/architecture.png)
+
 ## The idea
 
 Most people use AI backwards: they ask it to write *about* a topic, and get back the average
@@ -153,6 +155,16 @@ engine of the whole system. It's gitignored. Its template isn't. Don't edit temp
 Your `⚡` marks on source accounts — "this person is right but missing something" — go in
 `sources/*.local.md`, also gitignored. They're useful editorial judgments about named people,
 and they don't belong in a public repo under your name.
+
+## Contributing
+
+PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). The short version: the machinery
+(scripts, commands, skills, dashboard code) is public; anything personal (voice guides,
+pulled data, ideas, drafts) is gitignored and must never appear in a PR.
+
+## License
+
+[MIT](LICENSE).
 
 ## Credits
 

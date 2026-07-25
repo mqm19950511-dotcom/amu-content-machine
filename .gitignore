@@ -86,6 +86,7 @@ docs/*.script.md
 # more generated/personal
 vault/interview-questions.json
 docs/*.png
+!docs/architecture.png
 
 # cover generator output (personal)
 docs/cover*.png
