@@ -53,8 +53,10 @@ Granola's local DB is encrypted, so **do not** try the DB, tokens, or keychain. 
    Tie every spark to a real quote from the source. Score 1–10 against the user's niche and voice
    (read `voice/voice-guide.md` first if unsure of the voice).
 4. **Bank into the Vault**, in the matching section:
-   - Append to `vault/ideas.md` under the right header — `📮 外部源专区` (email) or
-     `🎙️ 会议记录专区` (Granola). Append-only; never delete existing ideas.
+   - Append to `vault/ideas.md` under the right header — `📮 External sources · 外部源专区`
+     (email) or `🎙️ Meetings · 会议记录专区` (Granola); match the header loosely if the
+     user's working copy predates the bilingual template. Append-only; never delete
+     existing ideas.
    - Append to `vault/vault.json` `ideas[]`, each tagged `"source": "email"` or `"source": "granola"`.
    - If a meeting has full text worth keeping, save it under `inputs/granola/<date>-<slug>.md`
      (gitignored) and reference it in the idea's body.
