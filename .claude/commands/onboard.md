@@ -68,7 +68,11 @@ These are paced against rate limits — let them run.
 
 ## Step 6 — Analyze (in LANG)
 
-Generate the digests, then run the analysis. Pass `LANG` to every analysis agent so all output
+Generate the digests first (pure transform, no API cost):
+```bash
+node scripts/make_digests.mjs   # raw pulls -> analysis/**/[id]-digest.md + me-digest.md
+```
+Then run the analysis. Pass `LANG` to every analysis agent so all output
 is in the user's language:
 - `scripts/analyze_creators.wf.js` — per-creator Xiaohongshu analysis
 - `scripts/analyze_sources.wf.js` — per-account X + Substack analysis

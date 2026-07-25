@@ -3,7 +3,7 @@
 //   GET  /*              -> dashboard files (no-store, so rebuilt data shows up)
 //   POST /api/transcribe -> forwards audio to Mistral Voxtral, returns { text }
 //
-// The Mistral key is read at runtime from ../wdyt/.env.local (or MISTRAL_API_KEY)
+// The Mistral key is read at runtime from the repo-root .env.local (or MISTRAL_API_KEY)
 // and never leaves the server — the browser records audio and posts it here, the
 // server calls Mistral. The key is never sent to the client and never committed.
 //
@@ -21,7 +21,7 @@ const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/cs
 
 function mistralKey() {
   if (process.env.MISTRAL_API_KEY) return process.env.MISTRAL_API_KEY.trim();
-  const env = process.env.MISTRAL_ENV_PATH || path.resolve(root, '../wdyt/.env.local');
+  const env = process.env.MISTRAL_ENV_PATH || path.resolve(root, '.env.local');
   if (fs.existsSync(env)) {
     const m = fs.readFileSync(env, 'utf8').match(/^MISTRAL_API_KEY=(.*)$/m);
     if (m) return m[1].trim().replace(/^["']|["']$/g, '');

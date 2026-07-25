@@ -15,9 +15,9 @@
 import fs from 'node:fs';
 import path from 'node:path';
 
-// Key is read from the wdyt project rather than duplicated — one place to rotate it.
+// Key is read from the repo-root .env.local (see .env.example), or TIKHUB_ENV_PATH.
 const ENV_PATH = process.env.TIKHUB_ENV_PATH
-  || path.resolve(import.meta.dirname, '../../wdyt/.env.local');
+  || path.resolve(import.meta.dirname, '../.env.local');
 
 let KEY = process.env.TIKHUB_API_KEY;
 if (!KEY) {

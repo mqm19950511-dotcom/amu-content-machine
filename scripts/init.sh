@@ -38,6 +38,18 @@ EOF
   fi
 done
 
+# Vault working copy (the idea backlog — gitignored, yours)
+if [ -e vault/ideas.md ]; then
+  echo "  skip  vault/ideas.md (already exists)"
+else
+  cp vault/ideas.template.md vault/ideas.md
+  echo "  new   vault/ideas.md"
+  created=$((created + 1))
+fi
+
+# Local-only input folders (gitignored)
+mkdir -p inputs/granola inputs/external
+
 echo
 echo "Created $created file(s). These are gitignored — your voice and your"
 echo "annotations stay local; the framework and clean lists are what get pushed."

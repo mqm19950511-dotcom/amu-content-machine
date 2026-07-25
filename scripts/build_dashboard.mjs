@@ -142,7 +142,11 @@ if (fs.existsSync(path.join(root, 'xhs_authors.json'))) {
     vault: (() => {
       const v = readIf('vault/vault.json');
       const q = readIf('vault/interview-questions.json');
-      if (v && q) v.ideas.forEach((idea, i) => { idea.questions = q[String(i)] || []; });
+      // Questions are keyed by the idea's stable `id`; numeric keys are a legacy
+      // fallback (fragile — breaks if ideas are ever inserted or deleted).
+      if (v && q) v.ideas.forEach((idea, i) => {
+        idea.questions = (idea.id && q[idea.id]) || q[String(i)] || [];
+      });
       return v;
     })(),
     meta: {

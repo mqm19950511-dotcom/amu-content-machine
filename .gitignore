@@ -79,9 +79,14 @@ IMG_* *.JPG
 # Personal deliverables (your specific content)
 docs/口播稿.md
 docs/口播稿-v2.md
+docs/文案.md
 docs/content.md
 docs/*.script.md
 
 # more generated/personal
 vault/interview-questions.json
 docs/*.png
+
+# cover generator output (personal)
+docs/cover*.png
+docs/.cover-frame.jpg

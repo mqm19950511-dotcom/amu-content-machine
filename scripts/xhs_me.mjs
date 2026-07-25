@@ -15,7 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 const root = path.resolve(import.meta.dirname, '..');
-const ENV = process.env.TIKHUB_ENV_PATH || path.resolve(root, '../wdyt/.env.local');
+const ENV = process.env.TIKHUB_ENV_PATH || path.resolve(root, '.env.local');
 let KEY = process.env.TIKHUB_API_KEY;
 if (!KEY && fs.existsSync(ENV)) KEY = fs.readFileSync(ENV, 'utf8').match(/^TIKHUB_API_KEY=(.*)$/m)?.[1];
 if (!KEY) { console.error('No TIKHUB_API_KEY'); process.exit(1); }
