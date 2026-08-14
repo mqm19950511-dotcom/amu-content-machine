@@ -1109,7 +1109,7 @@
     try{ localStorage.setItem('cm.lang', lang); }catch(e){}
     btn.textContent = lang==='en' ? '中' : 'EN';
   };
-  try{ const saved=localStorage.getItem('cm.lang'); if(saved) lang=saved; }catch(e){}
+  try{ localStorage.setItem('cm.lang','zh'); }catch(e){}   // default to Chinese; ignore any saved EN preference
   const qp=new URLSearchParams(location.search).get('lang'); if(qp==='en'||qp==='zh') lang=qp;
   applyAll();
 })();
