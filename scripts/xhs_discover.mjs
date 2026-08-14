@@ -36,12 +36,18 @@ const BASE = 'https://api.tikhub.io';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 // no spaces — spaces appeared to trigger HTTP 400
-const KEYWORDS = [
+// Keywords can be overridden via CLI (comma-separated): node xhs_discover.mjs "治愈,情绪价值"
+const DEFAULT_KEYWORDS = [
   'AI产品经理', 'vibecoding', 'AI工具推荐', '文科生AI', 'AI创业',
   'ClaudeCode', 'AI编程', '独立开发', 'AI出海', '硅谷AI',
   'Cursor', 'AIAgent', 'AI转型', 'AI副业', 'AI学习',
   '大模型', 'prompt工程', 'AI创作者', 'AI产品', '张咋啦',
 ];
+const KEYWORDS = process.argv[2]
+  ? process.argv[2].split(/[,，]/).map(s => s.trim()).filter(Boolean)
+  : DEFAULT_KEYWORDS;
+if (KEYWORDS.some(k => k.includes(' '))) { console.error('Keywords must contain no spaces.'); process.exit(1); }
+console.log(`Keywords (${KEYWORDS.length}): ${KEYWORDS.join(', ')}`);
 
 const authors = new Map();
 let calls = 0, notes = 0, ok = [], errs = [];

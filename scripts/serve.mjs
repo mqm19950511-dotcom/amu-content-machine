@@ -3,6 +3,12 @@
 //   GET  /*              -> dashboard files (no-store, so rebuilt data shows up)
 //   POST /api/transcribe -> forwards audio to Mistral Voxtral, returns { text }
 //
+// Self-serve pipeline endpoints (run pull scripts as queued background jobs):
+//   POST /api/refresh_me          -> re-pull your own notes + rebuild dashboard
+//   POST /api/add_creator         -> { input } profile link / URL / 24-hex id
+//   POST /api/discover            -> { keywords: "a,b,c", top: 12 }
+//   GET  /api/jobs                -> job list with status + log tail
+//
 // The Mistral key is read at runtime from the repo-root .env.local (or MISTRAL_API_KEY)
 // and never leaves the server — the browser records audio and posts it here, the
 // server calls Mistral. The key is never sent to the client and never committed.
@@ -12,6 +18,7 @@
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
+import { spawn } from 'node:child_process';
 
 const root = path.resolve(import.meta.dirname, '..');
 const dir = path.join(root, 'dashboard');
@@ -58,9 +65,116 @@ async function transcribe(req, res) {
 const cors = () => ({ 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'Content-Type' });
 
+// ── Self-serve pipeline jobs ────────────────────────────────────────────────
+// One job at a time (TikHub rate limits make parallel pulls counterproductive).
+const NODE = process.execPath;
+const jobs = []; const jobQueue = [];
+let jobSeq = 0, jobRunning = false;
+const FINALIZE = [['make_digests.mjs'], ['build_dashboard.mjs', '--lang', 'zh']];
+
+function enqueue(label, steps) {
+  const job = { id: ++jobSeq, label, status: '排队中', log: '', ts: Date.now() };
+  jobs.unshift(job); if (jobs.length > 30) jobs.pop();
+  jobQueue.push({ job, steps });
+  pump();
+  return job;
+}
+
+function pump() {
+  if (jobRunning) return;
+  const next = jobQueue.shift();
+  if (!next) return;
+  jobRunning = true;
+  const { job, steps } = next;
+  job.status = '运行中';
+  const runStep = i => {
+    if (i >= steps.length) { job.status = '完成'; jobRunning = false; pump(); return; }
+    const [script, ...args] = steps[i];
+    job.log += `\n$ node ${script} ${args.join(' ')}\n`;
+    const cp = spawn(NODE, [path.join(root, 'scripts', script), ...args], { cwd: root });
+    cp.stdout.on('data', d => { job.log += d; if (job.log.length > 20000) job.log = job.log.slice(-20000); });
+    cp.stderr.on('data', d => { job.log += d; if (job.log.length > 20000) job.log = job.log.slice(-20000); });
+    cp.on('close', code => {
+      if (code !== 0) { job.status = '失败'; job.log += `\n✗ 步骤退出码 ${code}`; jobRunning = false; pump(); return; }
+      runStep(i + 1);
+    });
+  };
+  runStep(0);
+}
+
+// Accept a 24-hex id, a profile URL, or an xhslink short link; return the hash id.
+async function resolveCreatorId(raw) {
+  const input = (raw || '').trim();
+  const direct = input.match(/[0-9a-f]{24}/i);
+  if (direct) return direct[0];
+  if (!/^https?:\/\//i.test(input)) return null;
+  let url = input;
+  for (let i = 0; i < 3; i++) {
+    try {
+      const r = await fetch(url, {
+        redirect: 'manual',
+        headers: { 'user-agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15' },
+      });
+      const loc = r.headers.get('location');
+      if (!loc) break;
+      const h = loc.match(/[0-9a-f]{24}/i);
+      if (h) return h[0];
+      url = loc;
+    } catch { return null; }
+  }
+  return null;
+}
+
+function myUserId() {
+  try {
+    const me = JSON.parse(fs.readFileSync(path.join(root, 'me.json'), 'utf8'));
+    return me.profile?.userId || me.userId || me.id || null;
+  } catch { return null; }
+}
+
+const readBody = req => new Promise(r => {
+  const chunks = [];
+  req.on('data', c => chunks.push(c));
+  req.on('end', () => { try { r(JSON.parse(Buffer.concat(chunks).toString() || '{}')); } catch { r({}); } });
+});
+
+async function api(req, res) {
+  const send = (code, obj) => { res.writeHead(code, cors()); res.end(JSON.stringify(obj)); };
+  if (req.method === 'GET' && req.url.startsWith('/api/jobs')) {
+    return send(200, jobs.map(j => ({ id: j.id, label: j.label, status: j.status, ts: j.ts, log: j.log.slice(-3000) })));
+  }
+  if (req.method !== 'POST') return send(405, { error: 'method not allowed' });
+  const body = await readBody(req);
+
+  if (req.url.startsWith('/api/refresh_me')) {
+    const id = myUserId();
+    if (!id) return send(400, { error: '找不到 me.json——请先在对话中让 WorkBuddy 跑一次 onboarding' });
+    return send(200, enqueue('刷新我的数据', [['xhs_me.mjs', id], ...FINALIZE]));
+  }
+
+  if (req.url.startsWith('/api/add_creator')) {
+    const id = await resolveCreatorId(body.input || '');
+    if (!id) return send(400, { error: '无法识别——请粘贴博主主页链接（App 分享 → 复制链接）或 24 位 ID' });
+    return send(200, enqueue(`添加博主 ${id.slice(0, 8)}…`,
+      [['xhs_creator.mjs', id], ['xhs_upsert_author.mjs', id, body.keyword || ''], ...FINALIZE]));
+  }
+
+  if (req.url.startsWith('/api/discover')) {
+    const kws = (body.keywords || '').split(/[,，]/).map(s => s.trim()).filter(Boolean);
+    if (!kws.length) return send(400, { error: '请至少输入一个关键词' });
+    if (kws.some(k => k.includes(' '))) return send(400, { error: '关键词不能含空格（接口限制）' });
+    const top = Math.min(Math.max(+body.top || 12, 1), 24);
+    return send(200, enqueue(`发现创作者：${kws.join(' / ')}`,
+      [['xhs_discover.mjs', kws.join(',')], ['xhs_creator.mjs', '--top', String(top)], ...FINALIZE]));
+  }
+
+  send(404, { error: 'unknown api' });
+}
+
 http.createServer((req, res) => {
   if (req.method === 'OPTIONS') { res.writeHead(204, cors()); return res.end(); }
   if (req.method === 'POST' && req.url.startsWith('/api/transcribe')) return transcribe(req, res);
+  if (req.url.startsWith('/api/')) return api(req, res);
 
   let p = decodeURIComponent(req.url.split('?')[0]);
   if (p === '/') p = '/index.html';
