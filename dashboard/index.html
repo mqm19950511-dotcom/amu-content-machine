@@ -1039,6 +1039,8 @@
     $('#vault-body').addEventListener('click',e=>{
       const b=e.target.closest('.vgo');if(!b)return;
       location.hash='interview&iv='+b.dataset.vi;
+      // 直接驱动视图切换+选题渲染，不依赖 hashchange（某些预览容器不触发）
+      if(window.__openInterview) window.__openInterview(+b.dataset.vi);
     });
   }
   if(SCAN)renderVault();
@@ -1104,6 +1106,16 @@
     // deep-link: #interview&idea=<vaultIndex> (from vault "用这个写草稿")
     const im=location.hash.match(/iv=(\d+)/);
     if(im){ sel.value=im[1]; sel.onchange(); }
+
+    // 供灵感库按钮直接调用：切到访谈视图并选中选题
+    window.__openInterview=(vi)=>{
+      document.querySelectorAll('#nav button').forEach(x=>x.removeAttribute('aria-current'));
+      document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
+      const view=document.getElementById('v-interview'); if(view) view.classList.add('on');
+      const nb=document.querySelector('#nav button[data-v=interview]'); if(nb) nb.setAttribute('aria-current','page');
+      sel.value=String(vi); sel.onchange();
+      window.scrollTo(0,0);
+    };
   })();
 
   /* ══ Draft ══ */
