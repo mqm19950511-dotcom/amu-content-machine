@@ -29,10 +29,11 @@ const TOP_N = +(process.argv[2] || 5);
 
 // Find a note's xsec_token by searching its title and matching the id.
 async function findToken(note, attempt = 1) {
-  // a distinctive middle slice of the title, no spaces/emoji-only fragments
+  // a distinctive slice of the title, no spaces/emoji-only fragments.
+  // toWellFormed() must run AFTER slice — slicing can split a surrogate pair.
   const t = (note.title || '').replace(/[\s#【】\[\]]+/g, '');
-  if (t.length < 4) return null;
-  const kw = t.slice(0, Math.min(12, t.length));
+  const kw = t.slice(0, Math.min(12, t.length)).toWellFormed().replace(/�/g, '');
+  if (kw.length < 4) return null;
   const url = `${BASE}/api/v1/xiaohongshu/app_v2/search_notes?keyword=${encodeURIComponent(kw)}&page=1&sort=general`;
   try {
     const r = await fetch(url, { headers: H });

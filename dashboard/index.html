@@ -407,6 +407,7 @@
         <div class="tools">
           <input type="search" id="cr-q" placeholder="搜索名字或标题…">
           <select id="cr-kw"><option value="">全部领域</option></select>
+          <select id="cr-type"><option value="">全部类型</option><option value="video">📹 视频博主</option><option value="image">🖼 图文博主</option></select>
           <button class="btn ghost" id="cr-only" aria-pressed="false">仅 ⚡</button>
           <button class="btn" id="cr-exp">导出 ⚡</button>
         </div>
@@ -833,9 +834,12 @@
     let cSort={k:'kwn',dir:-1};
     function view(){
       const q=$('#cr-q').value.trim().toLowerCase(),kw=sel.value,only=$('#cr-only').getAttribute('aria-pressed')==='true';
+      const typ=($('#cr-type')||{}).value||'';
       let r=rows.filter(c=>{
         if(only&&!bolts.has(c.id))return false;
         if(kw&&!c.kws.includes(kw))return false;
+        if(typ==='video'&&!(c.vr!==null&&c.vr>=0.6))return false;
+        if(typ==='image'&&!(c.vr!==null&&c.vr<0.6))return false;
         if(q&&!(c.name.toLowerCase().includes(q)||c.titles.some(t=>t.toLowerCase().includes(q))))return false;
         return true;
       });
@@ -854,9 +858,10 @@
         const has=c.analysis||(c.posts&&c.posts.length);
         const xhsUrl=`https://www.xiaohongshu.com/user/profile/${encodeURIComponent(c.id)}`;
         const isOpen=openRows.has(c.id);
+        const vBadge=c.vr===null?'':c.vr>=0.6?`<span title="视频占比 ${(c.vr*100).toFixed(0)}%">📹</span> `:`<span title="视频占比 ${(c.vr*100).toFixed(0)}%">🖼</span> `;
         const nameEl=has
-          ? `<span class="caret">▸</span> ${esc(c.name)}${c.analysis?' <span title="已分析" style="color:#C6407A">◆</span>':''}`
-          : `<a href="${xhsUrl}" target="_blank" rel="noopener">${esc(c.name)}</a>`;
+          ? `<span class="caret">▸</span> ${vBadge}${esc(c.name)}${c.analysis?' <span title="已分析" style="color:#C6407A">◆</span>':''}`
+          : `${vBadge}<a href="${xhsUrl}" target="_blank" rel="noopener">${esc(c.name)}</a>`;
         let row=`<tr class="cr-row${has?' has':''}${isOpen?' open':''}" data-id="${esc(c.id)}">
           <td class="rank">${i+1}</td>
           <td><button class="bolt" data-id="${esc(c.id)}" aria-pressed="${on}" title="他说得对，但漏了点什么">⚡</button></td>
@@ -943,6 +948,7 @@
     if(location.hash) route();
     $('#cr-q').oninput=draw;sel.onchange=draw;
     $('#cr-only').onclick=e=>{const b=e.currentTarget;b.setAttribute('aria-pressed',b.getAttribute('aria-pressed')!=='true');draw()};
+    $('#cr-type').onchange=()=>draw();
     $('#cr-exp').onclick=()=>{
       const pick=rows.filter(c=>bolts.has(c.id)).sort((a,b)=>(b.eng+b.col)-(a.eng+a.col));
       $('#dlg-h').textContent='⚡ 标记的创作者';

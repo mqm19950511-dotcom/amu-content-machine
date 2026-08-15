@@ -123,6 +123,11 @@ if (fs.existsSync(path.join(root, 'xhs_authors.json'))) {
     kws: a.kws, eng: a.eng, col: a.col, hits: a.hits, titles: a.titles || [],
     analysis: creatorAnalyses[a.id] || null,
     posts: creatorNotes[a.id] || null,
+    // video ratio among pulled posts: 1 = pure video blogger, 0 = pure image-text.
+    // null = not pulled yet (type unknown)
+    vr: creatorNotes[a.id] && creatorNotes[a.id].length
+      ? creatorNotes[a.id].filter(p => p.type === 'video').length / creatorNotes[a.id].length
+      : null,
   }));
   const keywords = [...new Set(creators.flatMap(c => c.kws))].sort();
   write('data.js', {
