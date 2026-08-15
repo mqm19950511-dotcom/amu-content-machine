@@ -70,12 +70,15 @@ async function search(kw, attempt = 1) {
       notes++;
       const id = u.userid || u.user_id || u.id || name;
       const avatar = String(u.images || u.image || u.avatar || '').split('?')[0];
-      if (!authors.has(id)) authors.set(id, { name, id, avatar, hits: 0, eng: 0, col: 0, kws: new Set(), titles: [] });
+      if (!authors.has(id)) authors.set(id, { name, id, avatar, hits: 0, eng: 0, col: 0, kws: new Set(), titles: [], vid: 0, img: 0 });
       const a = authors.get(id);
       if (!a.avatar && avatar) a.avatar = avatar;
       a.hits++;
       a.eng += Number(n.liked_count) || 0;
       a.col += Number(n.collected_count) || 0;
+      // rough content-type tally from search results, so the dashboard can
+      // filter video vs image authors without paying for a deep-pull.
+      if (String(n.type || '').toLowerCase() === 'video') a.vid++; else a.img++;
       a.kws.add(kw);
       const t = n.title && String(n.title).slice(0, 62);
       if (t && a.titles.length < 5 && !a.titles.includes(t)) a.titles.push(t);
@@ -104,10 +107,21 @@ const ranked = [...authors.values()]
   .map(a => ({ ...a, kws: [...a.kws], score: a.kws.length * 20000 + a.eng + a.col }))
   .sort((x, y) => y.score - x.score);
 
-fs.writeFileSync('xhs_authors.json', JSON.stringify(ranked, null, 1));
-console.log(JSON.stringify({ calls, notes, uniqueAuthors: authors.size, ok, errs }, null, 1));
+// Apply the creator blacklist (see sources/creator-quality.md for the standard):
+// pure-cooking accounts and non-video accounts that slipped past discovery get
+// permanently excluded here, even if they rank high on engagement.
+let blacklist = { ids: [], names: [] };
+try { blacklist = JSON.parse(fs.readFileSync('sources/creator-blacklist.json', 'utf8')); } catch {}
+const blockedIds = new Set(blacklist.ids || []);
+const blockedNames = new Set(blacklist.names || []);
+const finalRanked = ranked.filter(a => !blockedIds.has(a.id) && !blockedNames.has(a.name));
+const blocked = ranked.length - finalRanked.length;
+if (blocked) console.log(`Blacklist: excluded ${blocked} author(s) per sources/creator-blacklist.json`);
+
+fs.writeFileSync('xhs_authors.json', JSON.stringify(finalRanked, null, 1));
+console.log(JSON.stringify({ calls, notes, uniqueAuthors: finalRanked.length, ok, errs }, null, 1));
 console.log('--- TOP 40 ---');
-for (const a of ranked.slice(0, 40)) {
+for (const a of finalRanked.slice(0, 40)) {
   console.log(`${a.name} | kw=${a.kws.join(',')} | hits=${a.hits} | 赞${a.eng} 藏${a.col}`);
   console.log(`   ${a.titles.join(' / ')}`);
 }
