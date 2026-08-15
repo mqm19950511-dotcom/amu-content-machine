@@ -1069,8 +1069,21 @@
           </div>
           <div class="ivq-st" data-st="${i}"></div>
         </div>`).join('')+
-        `<div class="ivdone"><div class="t"><b>答完了？</b> 这些回答就是草稿的原材料。在 Claude Code 里运行 <code>/draft</code>，它会用你的语音把你说的话写成帖。</div></div>`;
+        `<div class="ivdone"><div class="t"><b>答完了？</b> 点下方按钮复制逐字稿，粘贴给 WorkBuddy 说「起草」——它会用你的原话生成口播解说词。</div>
+        <button class="btn" id="iv-copy" style="margin-top:10px">📋 复制访谈逐字稿</button><span class="adm-msg" id="iv-copy-msg"></span></div>`;
     }
+
+    // 导出当前选题的访谈逐字稿（markdown），供 AI 起草解说词
+    qa.addEventListener('click',e=>{
+      if(e.target.id!=='iv-copy')return;
+      const vi=+sel.value, idea=V.ideas[vi], ans=store[vi]||{};
+      const lines=[`# 访谈逐字稿`,`选题：${idea.title}`,`角度：${idea.angle||''}`,``,`## 问答`];
+      (idea.questions||[]).forEach((q,i)=>{ lines.push(``, `**Q${i+1}：${q}**`, ``, ans[i]||'（未回答）'); });
+      const md=lines.join('\n');
+      const done=()=>{const m=document.getElementById('iv-copy-msg');if(m){m.textContent='✓ 已复制，去粘贴给 WorkBuddy';setTimeout(()=>m.textContent='',4000);}};
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(md).then(done).catch(()=>{prompt('手动复制：',md);});}
+      else prompt('手动复制：',md);
+    });
 
     sel.onchange=()=>{ if(sel.value!=='') renderIdea(+sel.value); else qa.innerHTML=''; };
 
