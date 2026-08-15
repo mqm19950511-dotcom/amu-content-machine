@@ -31,26 +31,18 @@ const write = (f, obj) => {
 // Keyword rules over title+desc. First rule with the most hits wins; ties go
 // to rule order. Tune the keyword rules to the account's actual corpus.
 const CATS = [
-  { key: 'ai-tools',    label: 'AI 工具 / 工作流', en: 'AI Tools / Workflows', emoji: '🛠️',
-    kw: ['skills','claude code','claude skills','vibe cod','vibe code','cursor','codex','prompt','工作流','工具','app','substack','知识库','automation','mcp','飞书','n8n'] },
-  { key: 'ai-research',  label: 'AI 研究 / 学术', en: 'AI Research', emoji: '🔬',
-    kw: ['research','paper','neurips','ppo','llm','agent','karpathy','anthropic','reasoning','推理','神经','encoder','fine-tun','rl','model','arxiv','yejin','david bau','姚顺雨','engineering新书','ai engineering','moe','记忆','memory','evals','eval','经验时代','builders该'] },
-  { key: 'career',       label: '职场 / 求职', en: 'Career / Job Search', emoji: '💼',
-    kw: ['求职','简历','面试','大厂','工程师','offer','找工作','职场','邪修','跳槽','秋招','实习','career','interview','gtm','造势','build a cult','一人公司','沟通','leader','high performing','ic','wes kao','dan koe','沟通','带着逻辑'] },
-  { key: 'product',      label: '产品 / 增长', en: 'Product / Growth', emoji: '📈',
-    kw: ['冷启动','早期用户','增长','product','增长黑客','pmf','用户体验','ux','设计ai','设计 ai','go-to-market','定位','positioning'] },
-  { key: 'creators',     label: '创始人 / taste', en: 'Founders / Taste', emoji: '👤',
-    kw: ['创始人','taste','founder','delphi','sublime','有taste','be more human'] },
-  { key: 'networking',   label: '社交 / 连接', en: 'Networking', emoji: '☕',
-    kw: ['coffee chat','coffee','约','出差','links','认领','聊','meetup','networking','head of gtm'] },
-  { key: 'fashion',      label: '时尚 / 穿搭', en: 'Fashion / OOTD', emoji: '👗',
-    kw: ['穿搭','西装','裙','丝巾','包臀','大衣','港风','露背','芭比','high跟','高跟','valentino','helmut lang','alexander wang','alexa chung','toga','i am gia','ellery','haider','ackermann','薄纱','棉花糖','种草','好物','仙女','盛装','fashion','ootd','gia'] },
-  { key: 'life-travel',  label: '生活 / 旅行', en: 'Life / Travel', emoji: '🌊',
-    kw: ['vlog','la jolla','san diego','圣地亚哥','夏威夷','oregon','墨西哥','日落','日出','浮潜','zoo','河马','徒步','sedona','生日','birthday','周末','weekend','欧胡','captain','喜茶','低卡','吃喝','压马路','上海','毕业','ucla','宾大','申请','q&a','面朝大海','captain bruce','亡灵节'] },
-  { key: 'growth-self',  label: '自我成长 / 心智', en: 'Growth / Mindset', emoji: '🌱',
-    kw: ['self-care','self care','反刍','读书','内心','运动员','能量','钟形罩','思维训练','冥想','焦虑','人生','思考','comm |','30s','mood diary','精力','multi-task','好问题','问出好'] },
-  { key: 'recommend',    label: '推荐 / 播客', en: 'Recommends / Podcasts', emoji: '🎙️',
-    kw: ['lenny','podcast','播客','采访','all-in','推荐','访谈','notion','aha moment','年度回顾','grok','视频生成'] },
+  { key: 'healing',      label: '疗愈 / 爱上生活', en: 'Healing', emoji: '🌿',
+    kw: ['疗愈','治愈','爱上生活','幸福感','低成本','清单','小确幸','瞬间','充电','能量','恢复','松弛','解压','哄自己','爱自己','幸福','平静','温暖','晚安'] },
+  { key: 'emotion',      label: '情绪 / 自我成长', en: 'Emotion / Growth', emoji: '🌱',
+    kw: ['情绪','焦虑','内耗','成长','自洽','心态','感受','intj','mbti','人格','内求','课题','钝感','高敏感','自信','勇敢','别怕','别忘了自己','迷茫','孤独'] },
+  { key: 'food',         label: '美食 / 吃喝', en: 'Food', emoji: '🍜',
+    kw: ['吃','美食','咖啡','冰咖','探店','餐厅','食谱','奶茶','早餐','夜宵','好吃','火锅','烘焙','便利店'] },
+  { key: 'travel',       label: '旅行 / 周边游', en: 'Travel', emoji: '🌊',
+    kw: ['旅行','济州岛','安吉','九溪','徒步','周边游','海边','攻略','酒店','机票','Citywalk'.toLowerCase(),'风景','日落','日出','爬山','公园'] },
+  { key: 'daily',        label: '生活日常 / vlog', en: 'Daily / Vlog', emoji: '☕',
+    kw: ['日常','vlog','独居','周末','生活','记录','下班','宅家','room','收纳','布置','早晨','夜晚'] },
+  { key: 'work',         label: '打工人 / 职场', en: 'Work', emoji: '💼',
+    kw: ['大厂','打工人','上班','工作','运营','职场','加班','同事','工资','裸辞','辞职','面试','求职','简历'] },
 ];
 
 function categorize(text) {
