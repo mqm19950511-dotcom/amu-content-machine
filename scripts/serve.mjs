@@ -7,6 +7,7 @@
 //   POST /api/refresh_me          -> re-pull your own notes + rebuild dashboard
 //   POST /api/add_creator         -> { input } profile link / URL / 24-hex id
 //   POST /api/discover            -> { keywords: "a,b,c", top: 12 }
+//   POST /api/fix_links           -> attach xsec_token to stored note URLs
 //   GET  /api/jobs                -> job list with status + log tail
 //
 // The Mistral key is read at runtime from the repo-root .env.local (or MISTRAL_API_KEY)
@@ -166,6 +167,11 @@ async function api(req, res) {
     const top = Math.min(Math.max(+body.top || 12, 1), 24);
     return send(200, enqueue(`发现创作者：${kws.join(' / ')}`,
       [['xhs_discover.mjs', kws.join(',')], ['xhs_creator.mjs', '--top', String(top)], ...FINALIZE]));
+  }
+
+  if (req.url.startsWith('/api/fix_links')) {
+    return send(200, enqueue('修复笔记链接（附加 xsec_token）',
+      [['xhs_fix_links.mjs'], ...FINALIZE]));
   }
 
   send(404, { error: 'unknown api' });

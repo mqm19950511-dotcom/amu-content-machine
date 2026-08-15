@@ -526,6 +526,13 @@
     </div>
 
     <div class="panel">
+      <h3 style="margin-top:0">🔗 修复笔记链接</h3>
+      <p class="sub">小红书对不带签名令牌的笔记链接会显示「当前笔记暂时无法浏览」。点这里为已抓取的笔记（你的全部 + 每位博主的前 5 篇）附加有效令牌，让链接正常跳转。令牌可能随时间失效，失效后再点一次即可。博主主页链接不受此影响，但需要浏览器已登录 xiaohongshu.com。</p>
+      <button class="btn" id="adm-fix">修复笔记链接</button>
+      <span class="adm-msg" id="adm-fix-msg"></span>
+    </div>
+
+    <div class="panel">
       <h3 style="margin-top:0">📋 任务队列</h3>
       <div id="adm-jobs"><p class="sub">暂无任务。</p></div>
       <button class="btn ghost" id="adm-reload" style="display:none;margin-top:12px">✓ 有任务完成 — 刷新页面查看</button>
@@ -573,6 +580,7 @@
     call('#adm-ds-btn','#adm-ds-msg','/api/discover',{keywords:kw,top:+$('#adm-ds-top').value||12});
   };
   $('#adm-reload').onclick=()=>location.reload();
+  $('#adm-fix').onclick=()=>call('#adm-fix','#adm-fix-msg','/api/fix_links');
 
   async function poll(){
     let jobs=[];
