@@ -85,6 +85,21 @@ async function search(kw, attempt = 1) {
 
 for (const kw of KEYWORDS) { await search(kw); await sleep(4000); }
 
+// Merge with any existing discovery list so multiple keyword rounds accumulate
+// instead of overwriting each other.
+if (fs.existsSync('xhs_authors.json')) {
+  try {
+    for (const prev of JSON.parse(fs.readFileSync('xhs_authors.json', 'utf8'))) {
+      if (!authors.has(prev.id)) {
+        authors.set(prev.id, { ...prev, kws: new Set(prev.kws || []) });
+      } else {
+        const a = authors.get(prev.id);
+        for (const k of prev.kws || []) a.kws.add(k);
+      }
+    }
+  } catch {}
+}
+
 const ranked = [...authors.values()]
   .map(a => ({ ...a, kws: [...a.kws], score: a.kws.length * 20000 + a.eng + a.col }))
   .sort((x, y) => y.score - x.score);
