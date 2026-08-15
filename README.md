@@ -1,4 +1,18 @@
-# Content Machine
+# Content Machine（增强版）
+
+> 本项目基于 [zixi-liu/content_machine](https://github.com/zixi-liu/content_machine)（MIT 协议）二次开发。
+> 感谢原作者的开源设计——「机器公开、个人私有」的架构让二次创作非常安全。
+
+**本增强版新增（中文本地化 + 自助化改造）：**
+
+- 🇨🇳 **默认中文界面**（原版为中英切换，默认英文偏好问题已修复）
+- ⚙️ **数据管理面板**：仪表盘内自助操作，无需 AI 助手在场——一键刷新我的数据 / 粘贴博主链接添加对标 / 按关键词发现创作者 / 实时任务队列与日志
+- 🔗 **笔记链接修复**：小红书对无 `xsec_token` 的链接一律显示「当前笔记暂时无法浏览」，本版通过搜索收割令牌自动修复，修不好的转搜索页兜底，不留死链
+- 📹 **视频/图文博主切换**：创作者表格按视频占比打标、可筛选
+- 🎯 **视频博主过滤器** `xhs_filter_video.mjs` + 多轮关键词发现合并累积
+- 🌿 **分类规则示例**（治愈生活方式赛道），按 `scripts/build_dashboard.mjs` 顶部注释可改成任何赛道
+
+---
 
 A six-step Claude Code system that turns your raw thinking into publishable posts — without
 the AI slop. Adapted from [Alex Lieberman's workflow](https://www.chatprd.ai/how-i-ai/alex-liebermans-6-step-workflow-to-beat-ai-slop)
@@ -57,6 +71,23 @@ git clone <this-repo> && cd content_machine
 ./scripts/init.sh        # creates your private working copies from templates
 claude
 ```
+
+## 中文快速上手（增强版）
+
+```bash
+git clone git@github.com:mufeiyu0424/amu-content-machine.git
+cd amu-content-machine
+./scripts/init.sh                 # 从模板生成你的私有工作文件（已被 gitignore）
+```
+
+1. **配数据源**：复制 `.env.example` 为 `.env.local`，填入你的 [TikHub](https://tikhub.io) Key（拉小红书/X 数据用，按次计费几美分）
+2. **启动仪表盘**：`node scripts/serve.mjs` → 打开 http://localhost:8420
+3. **拉你自己的数据**：把你的小红书主页分享链接发给 AI 助手（Claude Code / WorkBuddy 等）跑 onboarding；或在仪表盘「数据管理」面板直接操作
+4. **六步创作流水线**：灵感库 → 访谈 → 草稿 → 评审团，在 AI 助手对话里进行
+5. 分类规则按你的赛道改：`scripts/build_dashboard.mjs` 顶部的 `CATS` 数组
+
+> 所有拉取的数据、你的声音指南、草稿都不会被 git 追踪——这个仓库只含机器，不含你的隐私。
+
 
 Then, inside Claude Code:
 
