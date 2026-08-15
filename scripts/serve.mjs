@@ -24,6 +24,9 @@ import { spawn } from 'node:child_process';
 const root = path.resolve(import.meta.dirname, '..');
 const dir = path.join(root, 'dashboard');
 const port = +(process.argv[2] || 8420);
+// host: default localhost-only (safe). Pass 0.0.0.0 to allow LAN devices
+// (iPad/phone on the same Wi-Fi) — anyone on the network can then reach it.
+const host = process.argv[3] || '127.0.0.1';
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css',
                 '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg' };
 
@@ -191,8 +194,8 @@ http.createServer((req, res) => {
     'Cache-Control': 'no-store, must-revalidate',
   });
   fs.createReadStream(file).pipe(res);
-}).listen(port, '127.0.0.1', () => {
-  console.log(`Content Machine dashboard -> http://localhost:${port}`);
+}).listen(port, host, () => {
+  console.log(`Content Machine dashboard -> http://${host === '0.0.0.0' ? 'localhost' : host}:${port}${host === '0.0.0.0' ? '（局域网可见）' : ''}`);
   console.log(mistralKey() ? '  voice transcription: enabled (Mistral Voxtral)' : '  voice transcription: off (no MISTRAL_API_KEY)');
   if (!fs.existsSync(path.join(dir, 'me.js'))) console.log('  (no me.js — run scripts/build_dashboard.mjs)');
 });
