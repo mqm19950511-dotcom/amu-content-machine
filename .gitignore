@@ -95,3 +95,4 @@ docs/*.png
 # cover generator output (personal)
 docs/cover*.png
 docs/.cover-frame.jpg
+.workbuddy/

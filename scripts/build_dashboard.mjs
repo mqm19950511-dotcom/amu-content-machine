@@ -118,17 +118,24 @@ const subCreators = loadPlatform('creators_sub', 'analysis/sub', 'slug')
 // ── creators → data.js ──────────────────────────────────────────────────
 if (fs.existsSync(path.join(root, 'xhs_authors.json'))) {
   const raw = read('xhs_authors.json');
-  const creators = raw.map(a => ({
-    name: a.name, id: a.id, avatar: a.avatar || '',
-    kws: a.kws, eng: a.eng, col: a.col, hits: a.hits, titles: a.titles || [],
-    analysis: creatorAnalyses[a.id] || null,
-    posts: creatorNotes[a.id] || null,
-    // video ratio among pulled posts: 1 = pure video blogger, 0 = pure image-text.
-    // null = not pulled yet (type unknown)
-    vr: creatorNotes[a.id] && creatorNotes[a.id].length
-      ? creatorNotes[a.id].filter(p => p.type === 'video').length / creatorNotes[a.id].length
-      : null,
-  }));
+  const creators = raw.map(a => {
+    // Prefer deep-pull data when available; fall back to the rough tally from
+    // the discovery search so every author has a rough type label.
+    const deepNotes = creatorNotes[a.id] || [];
+    const vidCount = deepNotes.length
+      ? deepNotes.filter(p => p.type === 'video').length
+      : (a.vid || 0);
+    const total = deepNotes.length || ((a.vid || 0) + (a.img || 0));
+    return {
+      name: a.name, id: a.id, avatar: a.avatar || '',
+      kws: a.kws, eng: a.eng, col: a.col, hits: a.hits, titles: a.titles || [],
+      analysis: creatorAnalyses[a.id] || null,
+      posts: deepNotes.length ? deepNotes : null,
+      // video ratio among known posts: 1 = pure video blogger, 0 = pure image-text.
+      // null = absolutely no data (rare)
+      vr: total ? vidCount / total : null,
+    };
+  });
   const keywords = [...new Set(creators.flatMap(c => c.kws))].sort();
   write('data.js', {
     landscape: readIf('analysis/landscape.json'),
