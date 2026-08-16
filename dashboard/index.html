@@ -482,6 +482,21 @@
   <section class="view" id="v-draft">
     <div style="margin-bottom:16px"><h1>草稿</h1>
       <p class="sub">用你的语音（从229篇提取）把一个灵感库选题写成帖。每句都能追溯到你真实说过的话，不是AI凭空生成。</p></div>
+    <div class="panel" style="margin-bottom:16px">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn" id="dr-gen">✨ AI 生成草稿</button>
+        <span class="adm-msg" id="dr-gen-msg"></span>
+      </div>
+      <div id="dr-revise" style="display:none;margin-top:12px">
+        <textarea id="dr-feedback" placeholder="提修改意见，比如：标题太平了换一批 / 正文第二段太书面，口语化一点 / 分镜加一个做饭的特写…"
+          style="width:100%;min-height:64px;padding:10px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:var(--card);color:var(--ink);resize:vertical;box-sizing:border-box"></textarea>
+        <div style="display:flex;gap:10px;align-items:center;margin-top:8px;flex-wrap:wrap">
+          <button class="btn" id="dr-revise-btn">✏️ 按意见修改</button>
+          <button class="btn" id="dr-revise-council" style="display:none">📋 一键按评审团意见修改</button>
+          <span class="adm-msg" id="dr-revise-msg"></span>
+        </div>
+      </div>
+    </div>
     <div id="draft-body"></div>
   </section>
 
@@ -489,6 +504,10 @@
   <section class="view" id="v-council">
     <div style="margin-bottom:16px"><h1>评审团</h1>
       <p class="sub">6位评委独立打分（1-10）。平均低于9触发修改。含一位「AI味过敏师」有一票否决权。</p></div>
+    <div class="panel" style="margin-bottom:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <button class="btn" id="cc-run">⭐ 开始评审</button>
+      <span class="adm-msg" id="cc-run-msg"></span>
+    </div>
     <div id="council-body"></div>
   </section>
 
@@ -1069,9 +1088,28 @@
           </div>
           <div class="ivq-st" data-st="${i}"></div>
         </div>`).join('')+
-        `<div class="ivdone"><div class="t"><b>答完了？</b> 点下方按钮复制逐字稿，粘贴给 WorkBuddy 说「起草」——它会用你的原话生成口播解说词。</div>
-        <button class="btn" id="iv-copy" style="margin-top:10px">📋 复制访谈逐字稿</button><span class="adm-msg" id="iv-copy-msg"></span></div>`;
+        `<div class="ivdone"><div class="t"><b>答完了？</b> 点「保存逐字稿」存进工作台，然后去「草稿」页一键生成；也可以复制逐字稿贴给 WorkBuddy 手动起草。</div>
+        <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <button class="btn" id="iv-save">💾 保存逐字稿</button>
+        <button class="btn" id="iv-copy">📋 复制访谈逐字稿</button><span class="adm-msg" id="iv-copy-msg"></span></div>`;
     }
+
+    // 保存逐字稿到服务器（drafts/current.json），供「草稿」页一键生成
+    qa.addEventListener('click',async e=>{
+      if(e.target.id!=='iv-save')return;
+      const vi=+sel.value, idea=V.ideas[vi], ans=store[vi]||{};
+      const pairs=(idea.questions||[]).map((q,i)=>({q,a:ans[i]||''})).filter(x=>x.a.trim());
+      const m=document.getElementById('iv-copy-msg');
+      if(!pairs.length){ m.textContent='✗ 至少回答一个问题再保存'; return; }
+      e.target.disabled=true; m.textContent='保存中…';
+      try{
+        const r=await fetch('/api/interview',{method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({ideaId:idea.id||'',idea:idea.title,angle:idea.angle||'',qa:pairs})});
+        const j=await r.json();
+        m.textContent=j.error?('✗ '+j.error):`✓ 已保存 ${j.qa} 组问答 → 去「草稿」页点「AI 生成草稿」`;
+      }catch(err){ m.textContent='✗ 请求失败（服务器没起？）'; }
+      e.target.disabled=false;
+    });
 
     // 导出当前选题的访谈逐字稿（markdown），供 AI 起草解说词
     qa.addEventListener('click',e=>{
@@ -1132,22 +1170,76 @@
   })();
 
   /* ══ Draft ══ */
+  // AI 任务：提交 → 轮询任务状态 → 完成后刷新页面
+  async function runAiJob(url,msgSel,body){
+    const m=$(msgSel); m.textContent='提交中…';
+    try{
+      const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body||{})});
+      const j=await r.json();
+      if(j.error){ m.textContent='✗ '+j.error; return; }
+      const id=j.id; m.textContent='任务 #'+id+' 已加入队列…';
+      const t=setInterval(async()=>{
+        try{
+          const jobs=await fetch('/api/jobs').then(x=>x.json());
+          const job=jobs.find(x=>x.id===id); if(!job)return;
+          m.textContent='任务 #'+id+'：'+job.status+'…（约 1-2 分钟）';
+          if(job.status==='完成'){ clearInterval(t); m.textContent='✓ 完成，正在刷新…'; setTimeout(()=>location.reload(),800); }
+          if(job.status==='失败'){ clearInterval(t); m.textContent='✗ 失败——到「数据管理」页展开日志看原因'; }
+        }catch(e){}
+      },3000);
+    }catch(e){ m.textContent='✗ 请求失败（服务器没起？跑 node scripts/serve.mjs）'; }
+  }
+  $('#dr-gen').onclick=()=>{
+    const d=ME&&ME.draft;
+    if(!d||!d.interview||!d.interview.qa||!d.interview.qa.length){
+      $('#dr-gen-msg').textContent='✗ 先到「访谈」页回答并保存逐字稿'; return;
+    }
+    runAiJob('/api/draft','#dr-gen-msg');
+  };
+  $('#dr-revise-btn').onclick=()=>{
+    const fb=$('#dr-feedback').value.trim();
+    if(!fb){ $('#dr-revise-msg').textContent='✗ 先写点修改意见'; return; }
+    runAiJob('/api/revise','#dr-revise-msg',{feedback:fb});
+  };
+  $('#dr-revise-council').onclick=()=>{
+    const d=ME&&ME.draft;
+    if(!d||!d.council||!d.council.length){ $('#dr-revise-msg').textContent='✗ 还没有评审结果——先到「评审团」页点评审'; return; }
+    // 抽出每位评委的「必须改+改法」，自动拼成修改意见（评委全文会由服务器一并附带）
+    const items=d.council.map(r=>{
+      const lines=(r.comment||'').split('\n').filter(l=>l.startsWith('⛔')||l.startsWith('🛠'));
+      return lines.length?`【${r.name}】\n${lines.join('\n')}`:'';
+    }).filter(Boolean).join('\n\n');
+    const fb='请逐条落实以下评审团意见（没被点名的部分保持原样）：\n\n'+items;
+    $('#dr-feedback').value=fb; // 放进输入框，看得见、可以追加自己的话再提交
+    runAiJob('/api/revise','#dr-revise-msg',{feedback:fb});
+  };
+
   function renderDraft(){
     const d=ME&&ME.draft;
-    if(!d){$('#draft-body').innerHTML=`<div class="empty-big"><b>还没有草稿。</b><br>到「灵感库」挑一个选题，用你的语音（已从229篇提取）生成初稿。<br>
-      <span style="font-size:12px">对应命令：<code>/draft</code></span></div>`;return;}
+    $('#dr-gen').textContent=(d&&d.text)?'🔄 重新生成草稿（DeepSeek）':'✨ AI 生成草稿（DeepSeek）';
+    $('#dr-revise').style.display=(d&&d.text)?'':'none';
+    $('#dr-revise-council').style.display=(d&&d.council&&d.council.length)?'':'none';
+    if(!d){$('#draft-body').innerHTML=`<div class="empty-big"><b>还没有草稿。</b><br>到「访谈」页选一个选题、回答并保存逐字稿，然后回到这里点「AI 生成草稿」。<br>
+      <span style="font-size:12px">也可以继续走对话：复制逐字稿给 WorkBuddy 说「起草」</span></div>`;return;}
     const grounded=d.interview&&d.interview.qa&&d.interview.qa.length;
     const badge=grounded
       ? `<span style="font-size:11px;background:var(--sage);padding:3px 9px;border-radius:999px;margin-left:8px">✓ 基于 ${d.interview.qa.length} 轮访谈</span>`
       : `<span style="font-size:11px;background:var(--cream);border:1px solid var(--line);padding:3px 9px;border-radius:999px;margin-left:8px">仅语音生成，未访谈</span>`;
-    $('#draft-body').innerHTML=`<div class="draftbox"><h3>选题：${esc(d.idea||'')} ${badge}</h3>${esc(d.text||'')}</div>`;
+    const ver=d.version?`<span style="font-size:11px;color:var(--muted);margin-left:8px">${esc(d.version)}</span>`:'';
+    $('#draft-body').innerHTML=`<div class="draftbox"><h3>选题：${esc(d.idea||'')} ${badge}${ver}</h3>${esc(d.text||'')}</div>`;
   }
   if(ME)renderDraft();
 
   /* ══ Council ══ */
+  $('#cc-run').onclick=()=>{
+    const d=ME&&ME.draft;
+    if(!d||!d.text){ $('#cc-run-msg').textContent='✗ 先在「草稿」页生成一篇草稿'; return; }
+    runAiJob('/api/council','#cc-run-msg');
+  };
+
   function renderCouncil(){
     const d=ME&&ME.draft;
-    if(!d||!d.council){$('#council-body').innerHTML=`<div class="empty-big"><b>还没有评审。</b><br>先在「草稿」生成一篇，6位评委会各自打分（1-10）。<br>
+    if(!d||!d.council){$('#council-body').innerHTML=`<div class="empty-big"><b>还没有评审。</b><br>先在「草稿」生成一篇，再点上方「开始评审」，6位评委会各自打分（1-10）。<br>
       <span style="font-size:12px">对应命令：<code>/council</code></span></div>`;return;}
     const avg=(d.council.reduce((s,r)=>s+(r.score||0),0)/d.council.length).toFixed(1);
     $('#council-body').innerHTML=`<div class="draftbox" style="margin-bottom:16px;max-width:none"><b>综合分：${avg}/10</b> ${avg>=9?'✅ 通过':'⚠️ 建议修改'}</div>

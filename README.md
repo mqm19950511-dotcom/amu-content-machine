@@ -12,6 +12,7 @@
 - 🎯 **视频博主过滤器** `xhs_filter_video.mjs` + 多轮关键词发现合并累积
 - 🧹 **博主质量治理**：`sources/creator-quality.md` 定义你赛道「要什么样的博主、不要什么样的博主」，`sources/creator-blacklist.json` 黑名单在发现时自动排除——纯做菜号、纯图文号不会混进来
 - 📋 **访谈逐字稿导出**：访谈页一键复制问答全文，直接喂给 AI 起草
+- 🤖 **AI 内容流水线（DeepSeek）**：访谈页「保存逐字稿」→ 草稿页「AI 生成草稿」→「按意见修改」（支持一键按评审团意见改稿）→ 评审团页「开始评审」（6 评委并行独立打分）——创作全程不出工作台。提示词在 `prompts/*.md`，纯中文可手改；模板随仓库分发，`init.sh` 生成工作副本
 - 🌐 **局域网模式**：`serve.mjs [port] [host]`，手机/iPad 连同一网络即可访问工作台
 - 🌿 **分类规则示例**（治愈生活方式赛道），按 `scripts/build_dashboard.mjs` 顶部注释可改成任何赛道
 
@@ -83,11 +84,11 @@ cd amu-content-machine
 ./scripts/init.sh                 # 从模板生成你的私有工作文件（已被 gitignore）
 ```
 
-1. **配数据源**：复制 `.env.example` 为 `.env.local`，填入你的 [TikHub](https://tikhub.io) Key（拉小红书/X 数据用，按次计费几美分）
+1. **配数据源**：复制 `.env.example` 为 `.env.local`，填入你的 [TikHub](https://tikhub.io) Key（拉小红书/X 数据用，按次计费几美分）；要用工作台内的 AI 起草/评审按钮，再填 [DeepSeek](https://platform.deepseek.com) Key（一轮起草+评审约几分钱人民币）
 2. **启动仪表盘**：`node scripts/serve.mjs` → 打开 http://localhost:8420
 3. **拉你自己的数据**：把你的小红书主页分享链接发给 AI 助手（Claude Code / WorkBuddy 等）跑 onboarding；或在仪表盘「数据管理」面板直接操作
-4. **六步创作流水线**：灵感库 → 访谈 → 草稿 → 评审团，在 AI 助手对话里进行
-5. 分类规则按你的赛道改：`scripts/build_dashboard.mjs` 顶部的 `CATS` 数组
+4. **六步创作流水线**：灵感库 → 访谈 → 草稿 → 评审团——配了 DeepSeek Key 后全程在仪表盘内完成（保存逐字稿 → 生成草稿 → 按意见/按评审改稿 → 评审打分）；不配 Key 也可以走 AI 助手对话进行
+5. 分类规则按你的赛道改：`scripts/build_dashboard.mjs` 顶部的 `CATS` 数组；起草/评审规则按你的定位改：`prompts/` 下的提示词文件
 
 > 所有拉取的数据、你的声音指南、草稿都不会被 git 追踪——这个仓库只含机器，不含你的隐私。
 

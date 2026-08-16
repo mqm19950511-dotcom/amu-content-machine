@@ -16,6 +16,18 @@ for t in voice/*.template.md; do
   fi
 done
 
+mkdir -p prompts
+for t in prompts/*.template.md; do
+  work="${t%.template.md}.md"
+  if [ -e "$work" ]; then
+    echo "  skip  $work (already exists)"
+  else
+    cp "$t" "$work"
+    echo "  new   $work"
+    created=$((created + 1))
+  fi
+done
+
 for s in sources/x-accounts sources/substacks sources/rednote; do
   work="$s.local.md"
   if [ -e "$work" ]; then

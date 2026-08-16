@@ -96,3 +96,8 @@ docs/*.png
 docs/cover*.png
 docs/.cover-frame.jpg
 .workbuddy/
+
+# Personal generation prompts (your voice rules for the LLM buttons).
+# Templates are tracked; your filled-in working copies are not.
+prompts/draft.md
+prompts/council.md

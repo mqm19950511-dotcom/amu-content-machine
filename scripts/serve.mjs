@@ -177,6 +177,47 @@ async function api(req, res) {
       [['xhs_fix_links.mjs'], ...FINALIZE]));
   }
 
+  // ── AI 内容流水线（DeepSeek）──────────────────────────────────────────
+  // 保存访谈逐字稿 → current.json；起草和评审走任务队列（脚本里调 DeepSeek）
+  if (req.url.startsWith('/api/interview')) {
+    const qa = (body.qa || []).filter(x => (x.q || '').trim() && (x.a || '').trim());
+    if (!(body.idea || '').trim()) return send(400, { error: '请填写选题' });
+    if (!qa.length) return send(400, { error: '请至少填写一组问答' });
+    const curPath = path.join(root, 'drafts', 'current.json');
+    let prev = {};
+    try { prev = JSON.parse(fs.readFileSync(curPath, 'utf8')); } catch {}
+    const cur = {
+      ...prev,
+      ideaId: body.ideaId || prev.ideaId || '',
+      idea: body.idea.trim(),
+      angle: (body.angle || '').trim(),
+      createdAt: prev.createdAt || new Date().toLocaleDateString('sv-SE'),
+      interview: { qa },
+    };
+    delete cur.council; // transcript changed → old review invalid
+    fs.writeFileSync(curPath, JSON.stringify(cur, null, 2));
+    enqueue('刷新面板数据', [['build_dashboard.mjs', '--lang', 'zh']]);
+    return send(200, { ok: true, qa: qa.length });
+  }
+
+  if (req.url.startsWith('/api/draft')) {
+    return send(200, enqueue('AI 生成草稿（DeepSeek）',
+      [['ai_draft.mjs'], ['build_dashboard.mjs', '--lang', 'zh']]));
+  }
+
+  if (req.url.startsWith('/api/revise')) {
+    const fb = (body.feedback || '').trim();
+    if (!fb) return send(400, { error: '请先填写修改意见' });
+    fs.writeFileSync(path.join(root, 'drafts', '.revise-feedback.txt'), fb);
+    return send(200, enqueue('AI 按意见改稿（DeepSeek）',
+      [['ai_revise.mjs'], ['build_dashboard.mjs', '--lang', 'zh']]));
+  }
+
+  if (req.url.startsWith('/api/council')) {
+    return send(200, enqueue('评审团评审（6 位评委）',
+      [['ai_council.mjs'], ['build_dashboard.mjs', '--lang', 'zh']]));
+  }
+
   send(404, { error: 'unknown api' });
 }
 
