@@ -116,8 +116,8 @@ const subCreators = loadPlatform('creators_sub', 'analysis/sub', 'slug')
     analysis: c.analysis, posts: (c.posts || []).slice(0, 10) }));
 
 // ── creators → data.js ──────────────────────────────────────────────────
-if (fs.existsSync(path.join(root, 'xhs_authors.json'))) {
-  const raw = read('xhs_authors.json');
+{
+  const raw = readIf('xhs_authors.json') || [];
   const creators = raw.map(a => {
     // Prefer deep-pull data when available; fall back to the rough tally from
     // the discovery search so every author has a rough type label.
@@ -167,8 +167,8 @@ if (fs.existsSync(path.join(root, 'xhs_authors.json'))) {
 }
 
 // ── my notes → me.js ────────────────────────────────────────────────────
-if (fs.existsSync(path.join(root, 'me.json'))) {
-  const { profile, notes } = read('me.json');
+{
+  const { profile = {}, notes = [] } = readIf('me.json') || {};
 
   const engAll = notes.map(n => n.likes + n.saves + n.comments + n.shares);
   const medEng = median(engAll);
@@ -250,6 +250,6 @@ if (fs.existsSync(path.join(root, 'me.json'))) {
     byCat,
     notes: enriched,
   });
-  console.log(`me.js    → ${profile.name}: ${notes.length} notes, ${Object.keys(byCat).length} categories, median engagement ${medEng}`);
+  console.log(`me.js    → ${profile.name || '(空)'}: ${notes.length} notes, ${Object.keys(byCat).length} categories, median engagement ${medEng}`);
   console.log('           categories:', Object.entries(byCat).map(([k, v]) => `${v.emoji}${v.count}`).join(' '));
 }
