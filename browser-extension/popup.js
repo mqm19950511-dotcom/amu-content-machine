@@ -14,7 +14,7 @@ const status = (msg, ok) => { const el = $('#status'); el.textContent = msg; el.
 
 $('#server').addEventListener('change', e => chrome.storage.local.set({ server: e.target.value.trim() }));
 
-// 抓取当前页正文（前 1500 字）
+// 抓取当前页正文（优先 article 元素，去噪音，截 5000 字）
 $('#grab').addEventListener('click', async () => {
   status('抓取中…');
   try {
@@ -22,11 +22,23 @@ $('#grab').addEventListener('click', async () => {
     const [{ result }] = await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: () => {
-        const t = document.body ? document.body.innerText : '';
-        return t.replace(/\s+/g, ' ').slice(0, 1500);
+        const root = document.querySelector('article')
+          || document.querySelector('[role="article"]')
+          || document.querySelector('main article')
+          || document.querySelector('.post-content, .article-content, .entry-content, .article-body')
+          || document.querySelector('main')
+          || document.body;
+        const clone = root.cloneNode(true);
+        clone.querySelectorAll('nav, header, footer, aside, form, script, style, noscript, [role="navigation"], [aria-hidden="true"]').forEach(e => e.remove());
+        return (clone.innerText || '')
+          .replace(/[ \t]+/g, ' ')
+          .replace(/\n[ \t]+/g, '\n')
+          .replace(/\n{3,}/g, '\n\n')
+          .trim()
+          .slice(0, 5000);
       },
     });
-    if (result) { $('#note').value = result; status('已抓取正文到备注'); }
+    if (result) { $('#note').value = result; status('✓ 已抓取正文到备注（' + result.length + ' 字）'); }
     else status('没抓到正文', false);
   } catch (e) { status('抓取失败：' + e.message, false); }
 });
