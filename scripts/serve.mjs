@@ -208,6 +208,11 @@ async function api(req, res) {
       [['ai_council.mjs', ideaId], ['build_dashboard.mjs', '--lang', 'zh']]));
   }
 
+  if (req.url.startsWith('/api/oracle')) {
+    return send(200, enqueue('生成灵感库（三源合一）',
+      [['ai_oracle.mjs'], ['build_dashboard.mjs', '--lang', 'zh']]));
+  }
+
   // ── 素材库 ────────────────────────────────────────────────────────────
   if (req.url.startsWith('/api/materials')) {
     const matPath = path.join(root, 'materials', 'materials.json');

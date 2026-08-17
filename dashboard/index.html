@@ -463,8 +463,11 @@
   <!-- ══ VAULT ══ -->
   <section class="view" id="v-vault">
     <div style="margin-bottom:16px"><h1>灵感库</h1>
-      <p class="sub">Oracle 综合了赛道全景（空白/常青/热点）+ 你的内容分析（爆款配方）+ 创作者打法，生成的排序选题。
-      挑一个 → 到「草稿」用你的风格写出来。</p></div>
+      <p class="sub">三源合一：你的账号内容 + 小红书创作者爆款 + 素材库，借鉴爆款的写作方式/结构/情绪生成选题。</p></div>
+    <div class="panel" style="margin-bottom:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <button class="btn" id="or-run">🔄 重新生成灵感库</button>
+      <span class="adm-msg" id="or-msg"></span>
+    </div>
     <div id="vault-body"></div>
   </section>
 
@@ -1038,6 +1041,7 @@
         <div class="va">${esc(v.angle||'')}</div>
         <div class="vmeta">${v.format?`<span>${esc(v.format)}</span>`:''}${v.inspiration?`<span>💡 ${esc(v.inspiration)}</span>`:''}</div>
         <div class="vw"><b>为什么有效：</b>${esc(v.why||'')}</div>
+        ${v.style_hint?`<div class="vw" style="margin-top:6px"><b>🎨 爆款手法：</b>${esc(v.style_hint)}</div>`:''}
         <button class="vgo" data-vi="${V.ideas.indexOf(v)}">用这个选题写草稿 →</button>
       </div>`;
     };
@@ -1106,6 +1110,8 @@
   }
   fillIdeaSelect($('#dr-idea'),'选择选题…');
   fillIdeaSelect($('#cc-idea'),'选择选题…');
+
+  $('#or-run').onclick=()=> runAiJob('/api/oracle','#or-msg');
 
 
   /* ══ Draft ══ */
