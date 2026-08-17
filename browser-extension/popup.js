@@ -14,13 +14,25 @@ const status = (msg, ok) => { const el = $('#status'); el.textContent = msg; el.
 
 $('#server').addEventListener('change', e => chrome.storage.local.set({ server: e.target.value.trim() }));
 
-// 抓取当前页正文（优先 article 元素，去噪音，截 5000 字）
+// 抓取当前页正文（滚动触发懒加载 → 等 → 注入所有框架含 iframe 合并取最长正文）
 $('#grab').addEventListener('click', async () => {
-  status('抓取中…');
+  status('抓取中（含滚动加载与 iframe 内容）…');
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-    const [{ result }] = await chrome.scripting.executeScript({
+
+    // 1) 先滚动到底再回顶，触发懒加载/流式渲染
+    await chrome.scripting.executeScript({
       target: { tabId: tab.id },
+      func: () => {
+        window.scrollTo(0, document.body.scrollHeight);
+        return true;
+      },
+    });
+    await new Promise(r => setTimeout(r, 700));
+
+    // 2) 注入所有 frame（含跨域 iframe），各自抽取正文
+    const results = await chrome.scripting.executeScript({
+      target: { tabId: tab.id, allFrames: true },
       func: () => {
         const root = document.querySelector('article')
           || document.querySelector('[role="article"]')
@@ -28,18 +40,26 @@ $('#grab').addEventListener('click', async () => {
           || document.querySelector('.post-content, .article-content, .entry-content, .article-body')
           || document.querySelector('main')
           || document.body;
+        if (!root) return '';
         const clone = root.cloneNode(true);
         clone.querySelectorAll('nav, header, footer, aside, form, script, style, noscript, [role="navigation"], [aria-hidden="true"]').forEach(e => e.remove());
         return (clone.innerText || '')
           .replace(/[ \t]+/g, ' ')
           .replace(/\n[ \t]+/g, '\n')
           .replace(/\n{3,}/g, '\n\n')
-          .trim()
-          .slice(0, 5000);
+          .trim();
       },
     });
-    if (result) { $('#note').value = result; status('✓ 已抓取正文到备注（' + result.length + ' 字）'); }
-    else status('没抓到正文', false);
+
+    const texts = results.map(r => r && r.result ? r.result : '').filter(Boolean);
+    // 取最长的一段作为正文
+    const best = texts.sort((a, b) => b.length - a.length)[0] || '';
+    if (best) {
+      $('#note').value = best.slice(0, 8000);
+      status('✓ 已抓取正文（' + best.length + ' 字' + (best.length > 8000 ? '，已截断' : '') + '，来自 ' + texts.length + ' 个框架）');
+    } else {
+      status('没抓到正文（可能正文是图片/画布渲染，只能手动复制）', false);
+    }
   } catch (e) { status('抓取失败：' + e.message, false); }
 });
 
