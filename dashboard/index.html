@@ -1069,17 +1069,28 @@
     const box=$('#materials-body');
     if(!list.length){ box.innerHTML='<div class="empty-big"><b>还没有素材。</b><br>在上方粘贴标题/链接保存，或用浏览器插件一键收录。</div>'; return; }
     box.innerHTML=list.map(m=>`
-      <div class="scard" style="margin-bottom:10px">
+      <div class="scard" data-id="${esc(m.id)}" style="margin-bottom:10px">
         <div class="scard-h">
           <div style="min-width:0">
             <div class="nm">${esc(m.title||'')}</div>
             <div class="meta">${m.url?`<a href="${esc(m.url)}" target="_blank" rel="noopener" style="color:#C6407A">${esc(m.url)}</a>`:''}</div>
           </div>
-          <div class="foll">${(m.createdAt||'').slice(0,10)}<br><span class="caret">▸</span></div>
+          <div class="foll">${(m.createdAt||'').slice(0,10)}<button class="mat-del" data-id="${esc(m.id)}" title="删除" style="background:none;border:0;color:var(--muted);cursor:pointer;font-size:14px;margin-top:4px">✕</button><br><span class="caret">▸</span></div>
         </div>
         <div class="scard-body">${m.note?`<div style="font-size:14px;line-height:1.7;white-space:pre-wrap">${esc(m.note)}</div>`:'<div class="sub">（无备注）</div>'}</div>
       </div>`).join('');
-    box.addEventListener('click',e=>{
+    box.addEventListener('click',async e=>{
+      const del=e.target.closest('.mat-del');
+      if(del){ e.stopPropagation();
+        if(!confirm('删除这条素材？')) return;
+        try{
+          const r=await fetch('/api/materials/'+encodeURIComponent(del.dataset.id),{method:'DELETE'});
+          const j=await r.json();
+          if(j.error){ alert('删除失败：'+j.error); return; }
+          setTimeout(()=>location.reload(),500);
+        }catch(err){ alert('删除失败（服务器没起？）'); }
+        return;
+      }
       if(e.target.closest('a'))return;
       const h=e.target.closest('.scard-h'); if(!h)return;
       h.parentElement.classList.toggle('open');

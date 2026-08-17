@@ -154,6 +154,18 @@ async function api(req, res) {
     const list = fs.existsSync(matPath) ? JSON.parse(fs.readFileSync(matPath, 'utf8')) : [];
     return send(200, list);
   }
+  if (req.method === 'DELETE' && req.url.startsWith('/api/materials/')) {
+    const id = decodeURIComponent(req.url.split('/api/materials/')[1] || '').trim();
+    if (!id) return send(400, { error: '缺少素材 id' });
+    const matPath = path.join(root, 'materials', 'materials.json');
+    let list = fs.existsSync(matPath) ? JSON.parse(fs.readFileSync(matPath, 'utf8')) : [];
+    const before = list.length;
+    list = list.filter(m => m.id !== id);
+    if (list.length === before) return send(404, { error: '未找到该素材' });
+    fs.writeFileSync(matPath, JSON.stringify(list, null, 2));
+    enqueue('刷新面板数据', [['build_dashboard.mjs', '--lang', 'zh']]);
+    return send(200, { ok: true, total: list.length });
+  }
   if (req.method !== 'POST') return send(405, { error: 'method not allowed' });
   const body = await readBody(req);
 
