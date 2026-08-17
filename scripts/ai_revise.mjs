@@ -62,7 +62,7 @@ const r = await fetch('https://api.deepseek.com/v1/chat/completions', {
   method: 'POST',
   headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    model: 'deepseek-v4-pro',
+    model: 'deepseek-v4-flash',
     messages: [
       { role: 'system', content: rules },
       { role: 'user', content: userMsg },
