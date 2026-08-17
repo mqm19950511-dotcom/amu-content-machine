@@ -737,10 +737,8 @@
   /* ── view switch ── */
   $('#nav').addEventListener('click',e=>{
     const b=e.target.closest('button[data-v]'); if(!b)return;
-    document.querySelectorAll('#nav button').forEach(x=>x.removeAttribute('aria-current'));
-    b.setAttribute('aria-current','page');
-    document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
-    $('#v-'+b.dataset.v).classList.add('on');
+    // 用 hash 驱动路由（刷新后停留当前页），route() 统一负责切视图
+    location.hash=b.dataset.v;
   });
 
   /* ══ MY CONTENT ══ */
@@ -963,7 +961,7 @@
     window.addEventListener('hashchange',route);
     // open-cr links set the hash instead of calling directly
     $('#cr-rows').addEventListener('click',e=>{const o=e.target.closest('.open-cr');if(o){e.preventDefault();location.hash='creator='+encodeURIComponent(o.dataset.id);}},true);
-    if(location.hash) route();
+    route();
     $('#cr-q').oninput=draw;sel.onchange=draw;
     $('#cr-only').onclick=e=>{const b=e.currentTarget;b.setAttribute('aria-pressed',b.getAttribute('aria-pressed')!=='true');draw()};
     $('#cr-type').onchange=()=>draw();
