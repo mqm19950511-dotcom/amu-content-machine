@@ -51,7 +51,7 @@ async function judge({ name, prompt }) {
         { role: 'user', content: `以下是要评审的草稿（选题：${cur.idea}）：\n\n${cur.text}` },
       ],
       temperature: 0.3,
-      max_tokens: 1500,
+      max_tokens: 3000,
     }),
     signal: AbortSignal.timeout(180000),
   });

@@ -94,7 +94,7 @@ const r = await fetch('https://api.deepseek.com/v1/chat/completions', {
       { role: 'user', content: userMsg },
     ],
     temperature: 0.7,
-    max_tokens: 6000,
+    max_tokens: 16000,
   }),
   signal: AbortSignal.timeout(300000),
 });
