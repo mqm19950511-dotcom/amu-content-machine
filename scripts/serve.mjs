@@ -67,9 +67,50 @@ async function transcribe(req, res) {
 }
 
 const cors = () => ({ 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type',
+  'Access-Control-Allow-Headers': 'Content-Type, X-Workbench-Password',
   // 让浏览器扩展/secure 页面可以访问本机 localhost（Chrome Private Network Access）
   'Access-Control-Allow-Private-Network': 'true' });
+
+// ── 访问密码门 ────────────────────────────────────────────────────────────
+function workbenchPassword() {
+  if (process.env.WORKBENCH_PASSWORD) return process.env.WORKBENCH_PASSWORD.trim();
+  const env = path.resolve(root, '.env.local');
+  if (fs.existsSync(env)) {
+    const m = fs.readFileSync(env, 'utf8').match(/^WORKBENCH_PASSWORD=(.*)$/m);
+    if (m) return m[1].trim();
+  }
+  return null; // 未配置 → 不启用密码门
+}
+
+function authed(req) {
+  const pw = workbenchPassword();
+  if (!pw) return true;
+  const cookie = (req.headers.cookie || '').split(';').map(s => s.trim()).find(c => c.startsWith('wb_auth='));
+  const c = cookie ? decodeURIComponent(cookie.slice('wb_auth='.length)) : null;
+  const h = req.headers['x-workbench-password'];
+  return c === pw || h === pw;
+}
+
+const LOGIN_PAGE = `<!DOCTYPE html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>登录 · 小红书 AI 内容工作台</title>
+<style>
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#fbf7ee;font-family:-apple-system,"PingFang SC",sans-serif}
+  .card{background:#fff;border:1px solid #efe9da;border-radius:16px;padding:32px;width:320px;box-shadow:0 8px 30px rgba(0,0,0,.05)}
+  h1{font-size:18px;margin:0 0 4px;color:#3a362f}
+  .sub{font-size:13px;color:#9a968b;margin:0 0 20px}
+  input{width:100%;box-sizing:border-box;padding:11px;border:1px solid #e5dfce;border-radius:10px;font-size:15px}
+  button{width:100%;margin-top:12px;padding:11px;background:#7aa97a;color:#fff;border:0;border-radius:10px;font-size:15px;cursor:pointer}
+  #msg{font-size:13px;color:#c0392b;min-height:18px;margin-top:8px}
+</style></head><body><div class="card"><h1>小红书 AI 内容工作台</h1><p class="sub">请输入访问密码</p>
+<input id="pw" type="password" placeholder="密码" autofocus>
+<button onclick="login()">进入</button><div id="msg"></div></div>
+<script>
+async function login(){
+  const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:document.getElementById('pw').value})});
+  const j=await r.json();
+  if(j.ok){location.href='/';}else{document.getElementById('msg').textContent='密码错误';}
+}
+document.getElementById('pw').addEventListener('keydown',e=>{if(e.key==='Enter')login()});
+</script></body></html>`;
 
 // ── Self-serve pipeline jobs ────────────────────────────────────────────────
 // One job at a time (TikHub rate limits make parallel pulls counterproductive).
@@ -254,6 +295,28 @@ async function api(req, res) {
 
 http.createServer((req, res) => {
   if (req.method === 'OPTIONS') { res.writeHead(204, cors()); return res.end(); }
+
+  // 登录接口
+  if (req.method === 'POST' && req.url.startsWith('/api/login')) {
+    const send = (code, obj) => { res.writeHead(code, cors()); res.end(JSON.stringify(obj)); };
+    readBody(req).then(body => {
+      const pw = workbenchPassword();
+      if (!pw || body.password === pw) {
+        res.writeHead(200, { ...cors(), 'Set-Cookie': `wb_auth=${encodeURIComponent(pw)}; Path=/; Max-Age=31536000; SameSite=Lax` });
+        return res.end(JSON.stringify({ ok: true }));
+      }
+      send(401, { ok: false });
+    });
+    return;
+  }
+
+  // 未登录 → 拦下（静态页面给登录页，接口给 401）
+  if (!authed(req)) {
+    if (req.url.startsWith('/api/')) { res.writeHead(401, cors()); return res.end(JSON.stringify({ error: 'unauthorized' })); }
+    res.writeHead(200, { 'Content-Type': 'text/html', 'Cache-Control': 'no-store' });
+    return res.end(LOGIN_PAGE);
+  }
+
   if (req.method === 'POST' && req.url.startsWith('/api/transcribe')) return transcribe(req, res);
   if (req.url.startsWith('/api/')) return api(req, res);
 

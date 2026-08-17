@@ -3,8 +3,9 @@ const status = (msg, ok) => { const el = $('#status'); el.textContent = msg; el.
 
 // 载入配置 + 当前页信息
 (async () => {
-  const cfg = await chrome.storage.local.get('server');
+  const cfg = await chrome.storage.local.get(['server', 'password']);
   $('#server').value = cfg.server || 'http://localhost:8420';
+  $('#password').value = cfg.password || '';
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   if (tab) {
     $('#title').value = tab.title || '';
@@ -13,6 +14,7 @@ const status = (msg, ok) => { const el = $('#status'); el.textContent = msg; el.
 })();
 
 $('#server').addEventListener('change', e => chrome.storage.local.set({ server: e.target.value.trim() }));
+$('#password').addEventListener('change', e => chrome.storage.local.set({ password: e.target.value }));
 
 // 抓取当前页正文（滚动触发懒加载 → 等 → 注入所有框架含 iframe 合并取最长正文）
 $('#grab').addEventListener('click', async () => {
@@ -74,11 +76,14 @@ $('#save').addEventListener('click', async () => {
   try {
     const r = await fetch(server + '/api/materials', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Workbench-Password': $('#password').value.trim(),
+      },
       body: JSON.stringify({ title, url, note, source: 'browser-extension' }),
     });
     const j = await r.json();
-    if (j.error) { status('✗ ' + j.error, false); return; }
+    if (j.error) { status('✗ ' + j.error + (r.status === 401 ? '（密码错误？）' : ''), false); return; }
     status('✓ 已保存到素材库（' + j.total + ' 条）', true);
   } catch (e) {
     status('✗ 连不上工作台。确认 Mac 已启动服务，且地址正确（外网用 Tailscale 的 100.x 地址）', false);
