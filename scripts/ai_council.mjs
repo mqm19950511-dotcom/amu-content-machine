@@ -1,14 +1,13 @@
-// Run the six-judge Writer's Council on the current draft via DeepSeek.
-// Reads drafts/current.json (needs text), prompts/council.md (split per judge),
-// writes current.json.council = [{ name, score, comment }].
-//
-// Usage: node scripts/ai_council.mjs
+// Run the six-judge Writer's Council on ONE idea's draft via DeepSeek.
+// Usage: node scripts/ai_council.mjs <ideaId>
 // Env: DEEPSEEK_API_KEY (or .env.local at repo root)
 
 import fs from 'node:fs';
 import path from 'node:path';
 
 const root = path.resolve(import.meta.dirname, '..');
+const ideaId = (process.argv[2] || '').trim();
+if (!ideaId) { console.error('✗ 缺少 ideaId 参数'); process.exit(1); }
 
 function apiKey() {
   if (process.env.DEEPSEEK_API_KEY) return process.env.DEEPSEEK_API_KEY.trim();
@@ -23,25 +22,23 @@ function apiKey() {
 const key = apiKey();
 if (!key) { console.error('✗ 找不到 DEEPSEEK_API_KEY（.env.local）'); process.exit(1); }
 
-const curPath = path.join(root, 'drafts', 'current.json');
-if (!fs.existsSync(curPath)) { console.error('✗ 还没有草稿——先在「草稿」页生成'); process.exit(1); }
-const cur = JSON.parse(fs.readFileSync(curPath, 'utf8'));
-if (!(cur.text || '').trim()) { console.error('✗ current.json 里没有草稿正文——先生成草稿'); process.exit(1); }
+const idxPath = path.join(root, 'drafts', 'index.json');
+const idx = fs.existsSync(idxPath) ? JSON.parse(fs.readFileSync(idxPath, 'utf8')) : {};
+const cur = idx[ideaId];
+if (!cur || !(cur.text || '').trim()) { console.error(`✗ [${ideaId}] 还没有草稿——先生成`); process.exit(1); }
 
-// split prompts/council.md: shared rules + one section per judge ("## 评委 N：...")
-const councilPromptPath = path.join(root, 'prompts', 'council.md');
-if (!fs.existsSync(councilPromptPath)) { console.error('✗ 找不到 prompts/council.md——先跑 ./scripts/init.sh（会从模板生成）'); process.exit(1); }
-const md = fs.readFileSync(councilPromptPath, 'utf8');
+const promptPath = path.join(root, 'prompts', 'council.md');
+if (!fs.existsSync(promptPath)) { console.error('✗ 找不到 prompts/council.md——先跑 ./scripts/init.sh'); process.exit(1); }
+const md = fs.readFileSync(promptPath, 'utf8');
+
 const parts = md.split(/^## 评委 /m);
 const shared = parts[0];
 const judges = parts.slice(1).map(sec => {
-  const header = sec.split('\n')[0]; // e.g. "1：David Perell（观点密度）"
+  const header = sec.split('\n')[0];
   const name = header.replace(/^\d+：/, '').trim();
   return { name, prompt: shared + '\n\n## 评委 ' + sec };
 });
-if (judges.length !== 6) console.log(`⚠ 提示词里解析到 ${judges.length} 位评委（预期 6 位），继续执行`);
-
-console.log(`→ 评审团开庭：${judges.map(x => x.name).join(' / ')}`);
+console.log(`→ 评审团开庭（[${ideaId}] ${cur.idea}）：${judges.map(x => x.name).join(' / ')}`);
 
 async function judge({ name, prompt }) {
   const r = await fetch('https://api.deepseek.com/v1/chat/completions', {
@@ -79,7 +76,7 @@ const results = await Promise.all(judges.map(j =>
 
 cur.council = results;
 cur.councilAt = new Date().toISOString();
-fs.writeFileSync(curPath, JSON.stringify(cur, null, 2));
+fs.writeFileSync(idxPath, JSON.stringify(idx, null, 2));
 
 const valid = results.filter(x => x.score > 0);
 const avg = valid.length ? (valid.reduce((s, x) => s + x.score, 0) / valid.length).toFixed(1) : '?';

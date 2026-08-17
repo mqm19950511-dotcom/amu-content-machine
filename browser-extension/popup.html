@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  body{width:340px;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Segoe UI",sans-serif;margin:0;padding:16px;color:#3a362f;background:#fbf7ee}
+  h1{font-size:15px;margin:0 0 2px}
+  .sub{font-size:12px;color:#9a968b;margin:0 0 12px}
+  label{font-size:12px;color:#8a8578;display:block;margin:10px 0 4px}
+  input,textarea{width:100%;box-sizing:border-box;padding:8px;border:1px solid #e5dfce;border-radius:8px;font-size:13px;background:#fff;color:#3a362f}
+  textarea{min-height:70px;resize:vertical}
+  .row{display:flex;gap:8px;align-items:center}
+  button{flex:none;background:#7aa97a;color:#fff;border:0;border-radius:8px;padding:9px 14px;font-size:13px;cursor:pointer}
+  button:hover{background:#6a9a6a}
+  #status{font-size:12px;margin-top:10px;min-height:16px}
+  .ok{color:#4a7a4a}.err{color:#c0392b}
+  .hint{font-size:11px;color:#b7b3a6;margin-top:12px}
+</style>
+</head>
+<body>
+  <h1>📚 收藏到素材库</h1>
+  <p class="sub">把当前页面一键存进工作台</p>
+
+  <label>工作台地址</label>
+  <input id="server" placeholder="http://localhost:8420">
+
+  <label>标题</label>
+  <input id="title" placeholder="文章标题">
+
+  <label>链接</label>
+  <input id="url" placeholder="https://...">
+
+  <label>备注（可选）</label>
+  <textarea id="note" placeholder="为什么值得存 / 摘录…"></textarea>
+
+  <div class="row" style="margin-top:12px">
+    <button id="grab">抓取正文</button>
+    <button id="save">保存</button>
+  </div>
+  <div id="status"></div>
+  <div class="hint">「抓取正文」会把当前页面文字摘到备注里（前 1500 字）。</div>
+
+<script src="popup.js"></script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "manifest_version": 3,
+  "name": "内容工作台 · 素材收藏",
+  "version": "1.0.0",
+  "description": "把当前网页一键收录到你的 AI 内容工作台「素材库」",
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "收藏到素材库"
+  }
+}

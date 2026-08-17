@@ -235,7 +235,8 @@ if (fs.existsSync(path.join(root, 'me.json'))) {
     profile,
     analysis: readIf('analysis/me-analysis.json'),
     voice: readIf('voice/voice.json'),
-    draft: readIf('drafts/current.json'),
+    drafts: readIf('drafts/index.json'),
+    materials: readIf('materials/materials.json'),
     series,
     stats: {
       notes: notes.length,

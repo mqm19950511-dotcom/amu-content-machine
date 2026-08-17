@@ -333,11 +333,9 @@
     <button data-v="me" aria-current="page"><span class="ic">◆</span>我的内容</button>
     <div class="navlabel navgap">来源</div>
     <button data-v="creators"><span class="ic">◗</span>小红书 创作者</button>
-    <button data-v="x"><span class="ic">✕</span>X 账号</button>
-    <button data-v="sub"><span class="ic">✉</span>Substack</button>
+    <button data-v="materials"><span class="ic">📚</span>素材库</button>
     <div class="navlabel navgap">流程</div>
     <button data-v="vault"><span class="ic">◇</span>灵感库</button>
-    <button data-v="interview"><span class="ic">◎</span>访谈 <span style="opacity:.5;font-size:11px">可选</span></button>
     <button data-v="draft"><span class="ic">▤</span>草稿</button>
     <button data-v="council"><span class="ic">★</span>评审团</button>
     <div class="navlabel navgap">管理</div>
@@ -443,20 +441,23 @@
     </div>
   </section>
 
-  <!-- ══ X ══ -->
-  <section class="view" id="v-x">
-    <div style="margin-bottom:16px"><h1>X 账号</h1>
-      <p class="sub">你关注的 AI Builder。点一行展开内容分析 + 高赞推文。来自 张咋啦 的「关注产品人不关注媒体人」清单。</p></div>
-    <div id="x-landscape"></div>
-    <div id="x-rows" class="srclist"></div>
-  </section>
-
-  <!-- ══ Substack ══ -->
-  <section class="view" id="v-sub">
-    <div style="margin-bottom:16px"><h1>Substack 订阅</h1>
-      <p class="sub">你订阅的刊物。Substack 无公开互动数据，所以分析的是<b>选题与视角</b>，不是"为什么火"。点一行展开。</p></div>
-    <div id="sub-landscape"></div>
-    <div id="sub-rows" class="srclist"></div>
+  <!-- ══ MATERIALS ══ -->
+  <section class="view" id="v-materials">
+    <div style="margin-bottom:16px"><h1>素材库</h1>
+      <p class="sub">收集任何你看到的好内容——文章、观点、案例、金句。可以手动粘贴，也可以用浏览器插件一键收录。未来灵感库会基于这些素材 + 同赛道创作者 + 你的资料生成新选题。</p></div>
+    <div class="panel" style="margin-bottom:16px">
+      <h2>手动导入</h2>
+      <div style="display:grid;gap:8px;margin-top:8px">
+        <input id="mat-title" placeholder="标题（必填其一）" style="padding:10px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:var(--card);color:var(--ink)">
+        <input id="mat-url" placeholder="链接 URL" style="padding:10px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:var(--card);color:var(--ink)">
+        <textarea id="mat-note" placeholder="备注 / 摘录 / 为什么值得存…" style="min-height:64px;padding:10px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:var(--card);color:var(--ink);resize:vertical"></textarea>
+        <div style="display:flex;gap:10px;align-items:center">
+          <button class="btn" id="mat-save">＋ 保存到素材库</button>
+          <span class="adm-msg" id="mat-msg"></span>
+        </div>
+      </div>
+    </div>
+    <div id="materials-body"></div>
   </section>
 
   <!-- ══ VAULT ══ -->
@@ -467,23 +468,14 @@
     <div id="vault-body"></div>
   </section>
 
-  <!-- ══ INTERVIEW (optional) ══ -->
-  <section class="view" id="v-interview">
-    <div style="margin-bottom:16px"><h1>访谈 <span style="font-size:14px;color:var(--muted);font-weight:400">· 可选，但这是防 AI 味的关键</span></h1>
-      <p class="sub">先在下面选一个灵感库选题，访谈就针对<b>那个选题</b>一个一个问你——逼你说出具体的数字、经历、观点。每题可以打字，也可以点 🎙️ 直接说。答完，这些就是草稿的原材料。</p></div>
-    <div class="ivpick">
-      <label>针对哪个选题访谈：</label>
-      <select id="iv-idea"><option value="">选一个灵感库选题…</option></select>
-    </div>
-    <div id="iv-qa"></div>
-  </section>
-
   <!-- ══ DRAFT ══ -->
   <section class="view" id="v-draft">
     <div style="margin-bottom:16px"><h1>草稿</h1>
-      <p class="sub">用你的语音（从229篇提取）把一个灵感库选题写成帖。每句都能追溯到你真实说过的话，不是AI凭空生成。</p></div>
+      <p class="sub">从灵感库选题生成草稿。所有草稿按选题分别保存，用下拉菜单切换。</p></div>
     <div class="panel" style="margin-bottom:16px">
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
+        <label style="font-size:13px;color:var(--muted)">选题：</label>
+        <select id="dr-idea" style="padding:8px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:var(--card);color:var(--ink);max-width:320px"></select>
         <button class="btn" id="dr-gen">✨ AI 生成草稿</button>
         <span class="adm-msg" id="dr-gen-msg"></span>
       </div>
@@ -503,10 +495,14 @@
   <!-- ══ COUNCIL ══ -->
   <section class="view" id="v-council">
     <div style="margin-bottom:16px"><h1>评审团</h1>
-      <p class="sub">6位评委独立打分（1-10）。平均低于9触发修改。含一位「AI味过敏师」有一票否决权。</p></div>
-    <div class="panel" style="margin-bottom:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-      <button class="btn" id="cc-run">⭐ 开始评审</button>
-      <span class="adm-msg" id="cc-run-msg"></span>
+      <p class="sub">6位评委独立打分（1-10）。平均低于9触发修改。含一位「AI味过敏师」有一票否决权。评审的是下方选中的那篇草稿。</p></div>
+    <div class="panel" style="margin-bottom:16px">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <label style="font-size:13px;color:var(--muted)">选题：</label>
+        <select id="cc-idea" style="padding:8px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:var(--card);color:var(--ink);max-width:320px"></select>
+        <button class="btn" id="cc-run">⭐ 开始评审</button>
+        <span class="adm-msg" id="cc-run-msg"></span>
+      </div>
     </div>
     <div id="council-body"></div>
   </section>
@@ -1019,9 +1015,7 @@
     });
   }
   if(SCAN){
-    if(SCAN.xLandscape) $('#x-landscape').innerHTML=landscapeHTML(SCAN.xLandscape,'英文 AI 圈全景（X）',SCAN.x.filter(c=>c.analysis).length+' 个账号','🎯 大V传播打法');
-    if(SCAN.subLandscape) $('#sub-landscape').innerHTML=landscapeHTML(SCAN.subLandscape,'英文深度刊物全景（Substack）',SCAN.sub.filter(c=>c.analysis).length+' 个刊物','🎯 深度刊物打法');
-    renderSrc('#x-rows',SCAN.x,'x');renderSrc('#sub-rows',SCAN.sub,'sub');
+    // X / Substack 板块已移除；素材库取代其位置（见 renderMaterials）
   }
 
   /* ══ Vault ══ */
@@ -1044,7 +1038,7 @@
         <div class="va">${esc(v.angle||'')}</div>
         <div class="vmeta">${v.format?`<span>${esc(v.format)}</span>`:''}${v.inspiration?`<span>💡 ${esc(v.inspiration)}</span>`:''}</div>
         <div class="vw"><b>为什么有效：</b>${esc(v.why||'')}</div>
-        <button class="vgo" data-vi="${V.ideas.indexOf(v)}">用这个选题做访谈 →</button>
+        <button class="vgo" data-vi="${V.ideas.indexOf(v)}">用这个选题写草稿 →</button>
       </div>`;
     };
     $('#vault-body').innerHTML=GROUPS.map(g=>{
@@ -1057,117 +1051,62 @@
     }).join('');
     $('#vault-body').addEventListener('click',e=>{
       const b=e.target.closest('.vgo');if(!b)return;
-      location.hash='interview&iv='+b.dataset.vi;
-      // 直接驱动视图切换+选题渲染，不依赖 hashchange（某些预览容器不触发）
-      if(window.__openInterview) window.__openInterview(+b.dataset.vi);
+      const idea=V.ideas[+b.dataset.vi];
+      if(idea && idea.id){ window.__curIdea=idea.id; }
+      location.hash='draft';
+      if(window.__openDraft) window.__openDraft();
     });
   }
   if(SCAN)renderVault();
 
-  /* ══ Interview · idea-driven Socratic Q&A ══ */
-  (function(){
-    const V=SCAN&&SCAN.vault, sel=$('#iv-idea'), qa=$('#iv-qa');
-    if(!sel||!V||!V.ideas){ if(qa)qa.innerHTML='<div class="empty-big">先生成灵感库（vault）。</div>'; return; }
-    const ideas=[...V.ideas].sort((a,b)=>(b.score||0)-(a.score||0));
-    ideas.forEach((idea,i)=>{ const o=new Option((i+1)+'. '+idea.title, String(V.ideas.indexOf(idea))); sel.add(o); });
-    const KEY='cm.iv'; // per-idea answers persist in browser
-    const store=JSON.parse(localStorage.getItem(KEY)||'{}');
-    const saveStore=()=>localStorage.setItem(KEY,JSON.stringify(store));
-
-    function renderIdea(vi){
-      const idea=V.ideas[vi];
-      const qs=idea.questions||[];
-      if(!qs.length){ qa.innerHTML='<div class="empty-big">这个选题还没生成访谈问题。<br><span style="font-size:12px">运行问题生成，或在 Claude Code 里 <code>/interview</code></span></div>'; return; }
-      store[vi]=store[vi]||{};
-      qa.innerHTML=qs.map((q,i)=>`
-        <div class="ivq" data-q="${i}">
-          <div class="ivq-head"><span class="ivq-n">${i+1}</span><span class="ivq-q">${esc(q)}</span></div>
-          <div class="ivq-in">
-            <textarea class="ivq-a" data-vi="${vi}" data-i="${i}" placeholder="打字，或点右边 🎙️ 直接说…">${esc(store[vi][i]||'')}</textarea>
-            <button class="ivq-mic" data-i="${i}" title="语音回答">🎙️</button>
+  /* ══ Materials（素材库） ══ */
+  function renderMaterials(){
+    const list=(ME&&ME.materials)||[];
+    const box=$('#materials-body');
+    if(!list.length){ box.innerHTML='<div class="empty-big"><b>还没有素材。</b><br>在上方粘贴标题/链接保存，或用浏览器插件一键收录。</div>'; return; }
+    box.innerHTML=list.map(m=>`
+      <div class="scard" style="margin-bottom:10px">
+        <div class="scard-h">
+          <div style="min-width:0">
+            <div class="nm">${esc(m.title||'')}</div>
+            <div class="meta">${m.url?`<a href="${esc(m.url)}" target="_blank" rel="noopener" style="color:#C6407A">${esc(m.url)}</a>`:''}</div>
           </div>
-          <div class="ivq-st" data-st="${i}"></div>
-        </div>`).join('')+
-        `<div class="ivdone"><div class="t"><b>答完了？</b> 点「保存逐字稿」存进工作台，然后去「草稿」页一键生成；也可以复制逐字稿贴给 WorkBuddy 手动起草。</div>
-        <div style="margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-        <button class="btn" id="iv-save">💾 保存逐字稿</button>
-        <button class="btn" id="iv-copy">📋 复制访谈逐字稿</button><span class="adm-msg" id="iv-copy-msg"></span></div>`;
-    }
-
-    // 保存逐字稿到服务器（drafts/current.json），供「草稿」页一键生成
-    qa.addEventListener('click',async e=>{
-      if(e.target.id!=='iv-save')return;
-      const vi=+sel.value, idea=V.ideas[vi], ans=store[vi]||{};
-      const pairs=(idea.questions||[]).map((q,i)=>({q,a:ans[i]||''})).filter(x=>x.a.trim());
-      const m=document.getElementById('iv-copy-msg');
-      if(!pairs.length){ m.textContent='✗ 至少回答一个问题再保存'; return; }
-      e.target.disabled=true; m.textContent='保存中…';
-      try{
-        const r=await fetch('/api/interview',{method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({ideaId:idea.id||'',idea:idea.title,angle:idea.angle||'',qa:pairs})});
-        const j=await r.json();
-        m.textContent=j.error?('✗ '+j.error):`✓ 已保存 ${j.qa} 组问答 → 去「草稿」页点「AI 生成草稿」`;
-      }catch(err){ m.textContent='✗ 请求失败（服务器没起？）'; }
-      e.target.disabled=false;
+          <div class="foll">${(m.createdAt||'').slice(0,10)}<br><span class="caret">▸</span></div>
+        </div>
+        <div class="scard-body">${m.note?`<div style="font-size:14px;line-height:1.7;white-space:pre-wrap">${esc(m.note)}</div>`:'<div class="sub">（无备注）</div>'}</div>
+      </div>`).join('');
+    box.addEventListener('click',e=>{
+      if(e.target.closest('a'))return;
+      const h=e.target.closest('.scard-h'); if(!h)return;
+      h.parentElement.classList.toggle('open');
     });
+  }
+  if(ME)renderMaterials();
 
-    // 导出当前选题的访谈逐字稿（markdown），供 AI 起草解说词
-    qa.addEventListener('click',e=>{
-      if(e.target.id!=='iv-copy')return;
-      const vi=+sel.value, idea=V.ideas[vi], ans=store[vi]||{};
-      const lines=[`# 访谈逐字稿`,`选题：${idea.title}`,`角度：${idea.angle||''}`,``,`## 问答`];
-      (idea.questions||[]).forEach((q,i)=>{ lines.push(``, `**Q${i+1}：${q}**`, ``, ans[i]||'（未回答）'); });
-      const md=lines.join('\n');
-      const done=()=>{const m=document.getElementById('iv-copy-msg');if(m){m.textContent='✓ 已复制，去粘贴给 WorkBuddy';setTimeout(()=>m.textContent='',4000);}};
-      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(md).then(done).catch(()=>{prompt('手动复制：',md);});}
-      else prompt('手动复制：',md);
-    });
+  $('#mat-save').onclick=async()=>{
+    const title=$('#mat-title').value.trim(), url=$('#mat-url').value.trim(), note=$('#mat-note').value.trim();
+    if(!title&&!url){ $('#mat-msg').textContent='✗ 标题和链接至少填一个'; return; }
+    $('#mat-save').disabled=true; $('#mat-msg').textContent='保存中…';
+    try{
+      const r=await fetch('/api/materials',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,url,note})});
+      const j=await r.json();
+      if(j.error){ $('#mat-msg').textContent='✗ '+j.error; }
+      else{ $('#mat-title').value='';$('#mat-url').value='';$('#mat-note').value=''; $('#mat-msg').textContent='✓ 已保存，正在刷新…'; setTimeout(()=>location.reload(),800); }
+    }catch(e){ $('#mat-msg').textContent='✗ 请求失败（服务器没起？）'; }
+    $('#mat-save').disabled=false;
+  };
 
-    sel.onchange=()=>{ if(sel.value!=='') renderIdea(+sel.value); else qa.innerHTML=''; };
+  /* ══ 共享：选题下拉 + 当前选题 ══ */
+  const IDEAS=(SCAN&&SCAN.vault&&SCAN.vault.ideas)||[];
+  window.__curIdea = window.__curIdea || (IDEAS[0]&&IDEAS[0].id) || '';
+  function fillIdeaSelect(sel, placeholder){
+    if(!sel)return;
+    sel.innerHTML='<option value="">'+placeholder+'</option>'+
+      IDEAS.map(v=>`<option value="${esc(v.id)}" ${v.id===window.__curIdea?'selected':''}>${esc(v.title)}</option>`).join('');
+  }
+  fillIdeaSelect($('#dr-idea'),'选择选题…');
+  fillIdeaSelect($('#cc-idea'),'选择选题…');
 
-    // save answers as you type
-    qa.addEventListener('input',e=>{ const t=e.target.closest('.ivq-a'); if(!t)return;
-      const vi=t.dataset.vi, i=t.dataset.i; store[vi]=store[vi]||{}; store[vi][i]=t.value; saveStore(); });
-
-    // per-question mic → transcribe → fill that textarea
-    let rec, chunks=[], activeMic=null;
-    qa.addEventListener('click',async e=>{
-      const mic=e.target.closest('.ivq-mic'); if(!mic)return;
-      const i=mic.dataset.i, st=qa.querySelector(`[data-st="${i}"]`), ta=qa.querySelector(`.ivq-a[data-i="${i}"]`);
-      if(activeMic){ rec.stop(); return; }
-      if(location.protocol==='file:'){ st.textContent='请用 node scripts/serve.mjs 打开（file:// 不能录音）'; return; }
-      try{
-        const stream=await navigator.mediaDevices.getUserMedia({audio:true});
-        rec=new MediaRecorder(stream); chunks=[]; activeMic=mic; mic.classList.add('rec'); st.textContent='录音中…再点一下停止';
-        rec.ondataavailable=ev=>chunks.push(ev.data);
-        rec.onstop=async()=>{
-          stream.getTracks().forEach(t=>t.stop()); mic.classList.remove('rec'); activeMic=null; st.textContent='转录中…';
-          const blob=new Blob(chunks,{type:rec.mimeType||'audio/webm'});
-          try{
-            const r=await fetch('/api/transcribe',{method:'POST',headers:{'Content-Type':blob.type},body:blob});
-            const j=await r.json();
-            if(j.text){ ta.value=(ta.value?ta.value+' ':'')+j.text; ta.dispatchEvent(new Event('input',{bubbles:true})); st.textContent='✓ 已加入，可以继续说'; }
-            else st.textContent='转录失败：'+(j.error||'');
-          }catch(err){ st.textContent='转录出错（服务器没起？跑 node scripts/serve.mjs）'; }
-        };
-        rec.start();
-      }catch(err){ st.textContent='拿不到麦克风权限'; }
-    });
-
-    // deep-link: #interview&idea=<vaultIndex> (from vault "用这个写草稿")
-    const im=location.hash.match(/iv=(\d+)/);
-    if(im){ sel.value=im[1]; sel.onchange(); }
-
-    // 供灵感库按钮直接调用：切到访谈视图并选中选题
-    window.__openInterview=(vi)=>{
-      document.querySelectorAll('#nav button').forEach(x=>x.removeAttribute('aria-current'));
-      document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
-      const view=document.getElementById('v-interview'); if(view) view.classList.add('on');
-      const nb=document.querySelector('#nav button[data-v=interview]'); if(nb) nb.setAttribute('aria-current','page');
-      sel.value=String(vi); sel.onchange();
-      window.scrollTo(0,0);
-    };
-  })();
 
   /* ══ Draft ══ */
   // AI 任务：提交 → 轮询任务状态 → 完成后刷新页面
@@ -1190,63 +1129,60 @@
     }catch(e){ m.textContent='✗ 请求失败（服务器没起？跑 node scripts/serve.mjs）'; }
   }
   $('#dr-gen').onclick=()=>{
-    const d=ME&&ME.draft;
-    if(!d||!d.interview||!d.interview.qa||!d.interview.qa.length){
-      $('#dr-gen-msg').textContent='✗ 先到「访谈」页回答并保存逐字稿'; return;
-    }
-    runAiJob('/api/draft','#dr-gen-msg');
+    if(!window.__curIdea){ $('#dr-gen-msg').textContent='✗ 先在上方选择选题'; return; }
+    runAiJob('/api/draft','#dr-gen-msg',{ideaId:window.__curIdea});
   };
   $('#dr-revise-btn').onclick=()=>{
     const fb=$('#dr-feedback').value.trim();
     if(!fb){ $('#dr-revise-msg').textContent='✗ 先写点修改意见'; return; }
-    runAiJob('/api/revise','#dr-revise-msg',{feedback:fb});
+    if(!window.__curIdea){ $('#dr-revise-msg').textContent='✗ 先在上方选择选题'; return; }
+    runAiJob('/api/revise','#dr-revise-msg',{ideaId:window.__curIdea,feedback:fb});
   };
   $('#dr-revise-council').onclick=()=>{
-    const d=ME&&ME.draft;
-    if(!d||!d.council||!d.council.length){ $('#dr-revise-msg').textContent='✗ 还没有评审结果——先到「评审团」页点评审'; return; }
-    // 抽出每位评委的「必须改+改法」，自动拼成修改意见（评委全文会由服务器一并附带）
+    const d=(ME&&ME.drafts&&ME.drafts[window.__curIdea])||{};
+    if(!d.council||!d.council.length){ $('#dr-revise-msg').textContent='✗ 还没有评审结果——先到「评审团」页点评审'; return; }
     const items=d.council.map(r=>{
       const lines=(r.comment||'').split('\n').filter(l=>l.startsWith('⛔')||l.startsWith('🛠'));
       return lines.length?`【${r.name}】\n${lines.join('\n')}`:'';
     }).filter(Boolean).join('\n\n');
     const fb='请逐条落实以下评审团意见（没被点名的部分保持原样）：\n\n'+items;
-    $('#dr-feedback').value=fb; // 放进输入框，看得见、可以追加自己的话再提交
-    runAiJob('/api/revise','#dr-revise-msg',{feedback:fb});
+    $('#dr-feedback').value=fb;
+    runAiJob('/api/revise','#dr-revise-msg',{ideaId:window.__curIdea,feedback:fb});
   };
 
   function renderDraft(){
-    const d=ME&&ME.draft;
+    const iid=window.__curIdea;
+    const d=(ME&&ME.drafts&&ME.drafts[iid])||null;
     $('#dr-gen').textContent=(d&&d.text)?'🔄 重新生成草稿（DeepSeek）':'✨ AI 生成草稿（DeepSeek）';
     $('#dr-revise').style.display=(d&&d.text)?'':'none';
     $('#dr-revise-council').style.display=(d&&d.council&&d.council.length)?'':'none';
-    if(!d){$('#draft-body').innerHTML=`<div class="empty-big"><b>还没有草稿。</b><br>到「访谈」页选一个选题、回答并保存逐字稿，然后回到这里点「AI 生成草稿」。<br>
-      <span style="font-size:12px">也可以继续走对话：复制逐字稿给 WorkBuddy 说「起草」</span></div>`;return;}
-    const grounded=d.interview&&d.interview.qa&&d.interview.qa.length;
-    const badge=grounded
-      ? `<span style="font-size:11px;background:var(--sage);padding:3px 9px;border-radius:999px;margin-left:8px">✓ 基于 ${d.interview.qa.length} 轮访谈</span>`
-      : `<span style="font-size:11px;background:var(--cream);border:1px solid var(--line);padding:3px 9px;border-radius:999px;margin-left:8px">仅语音生成，未访谈</span>`;
+    if(!d||!d.text){$('#draft-body').innerHTML=`<div class="empty-big"><b>这个选题还没有草稿。</b><br>点上方「AI 生成草稿」开始写，或到「灵感库」换一个选题。</div>`;return;}
     const ver=d.version?`<span style="font-size:11px;color:var(--muted);margin-left:8px">${esc(d.version)}</span>`:'';
-    $('#draft-body').innerHTML=`<div class="draftbox"><h3>选题：${esc(d.idea||'')} ${badge}${ver}</h3>${esc(d.text||'')}</div>`;
+    $('#draft-body').innerHTML=`<div class="draftbox"><h3>选题：${esc(d.idea||iid)}${ver}</h3>${esc(d.text||'')}</div>`;
   }
   if(ME)renderDraft();
+  $('#dr-idea').onchange=()=>{ window.__curIdea=$('#dr-idea').value; renderDraft(); };
+  window.__openDraft=()=>{ fillIdeaSelect($('#dr-idea'),'选择选题…'); fillIdeaSelect($('#cc-idea'),'选择选题…'); renderDraft(); };
 
   /* ══ Council ══ */
   $('#cc-run').onclick=()=>{
-    const d=ME&&ME.draft;
-    if(!d||!d.text){ $('#cc-run-msg').textContent='✗ 先在「草稿」页生成一篇草稿'; return; }
-    runAiJob('/api/council','#cc-run-msg');
+    if(!window.__curIdea){ $('#cc-run-msg').textContent='✗ 先在上方选择选题'; return; }
+    const d=(ME&&ME.drafts&&ME.drafts[window.__curIdea])||{};
+    if(!d.text){ $('#cc-run-msg').textContent='✗ 这个选题还没有草稿——先到「草稿」页生成'; return; }
+    runAiJob('/api/council','#cc-run-msg',{ideaId:window.__curIdea});
   };
 
   function renderCouncil(){
-    const d=ME&&ME.draft;
-    if(!d||!d.council){$('#council-body').innerHTML=`<div class="empty-big"><b>还没有评审。</b><br>先在「草稿」生成一篇，再点上方「开始评审」，6位评委会各自打分（1-10）。<br>
-      <span style="font-size:12px">对应命令：<code>/council</code></span></div>`;return;}
+    const iid=window.__curIdea;
+    const d=(ME&&ME.drafts&&ME.drafts[iid])||{};
+    if(!d.council){$('#council-body').innerHTML=`<div class="empty-big"><b>还没有评审。</b><br>先在「草稿」页为这个选题生成一篇，再点上方「开始评审」。</div>`;return;}
     const avg=(d.council.reduce((s,r)=>s+(r.score||0),0)/d.council.length).toFixed(1);
     $('#council-body').innerHTML=`<div class="draftbox" style="margin-bottom:16px;max-width:none"><b>综合分：${avg}/10</b> ${avg>=9?'✅ 通过':'⚠️ 建议修改'}</div>
       <div class="cscore">${d.council.map(r=>`<div class="creview"><div class="ch"><span class="cn">${esc(r.name)}</span><span class="cs">${r.score}</span></div>
         <div class="cbody">${esc(r.comment||'')}</div></div>`).join('')}</div>`;
   }
   if(ME)renderCouncil();
+  $('#cc-idea').onchange=()=>{ window.__curIdea=$('#cc-idea').value; renderCouncil(); };
 
   $('#dlg-x').onclick=()=>$('#dlg').close();
   $('#dlg-c').onclick=async()=>{try{await navigator.clipboard.writeText($('#dlg-t').value);$('#dlg-c').textContent='已复制';setTimeout(()=>$('#dlg-c').textContent='复制',1400)}catch{$('#dlg-t').select()}};

@@ -147,6 +147,11 @@ async function api(req, res) {
   if (req.method === 'GET' && req.url.startsWith('/api/jobs')) {
     return send(200, jobs.map(j => ({ id: j.id, label: j.label, status: j.status, ts: j.ts, log: j.log.slice(-3000) })));
   }
+  if (req.method === 'GET' && req.url.startsWith('/api/materials')) {
+    const matPath = path.join(root, 'materials', 'materials.json');
+    const list = fs.existsSync(matPath) ? JSON.parse(fs.readFileSync(matPath, 'utf8')) : [];
+    return send(200, list);
+  }
   if (req.method !== 'POST') return send(405, { error: 'method not allowed' });
   const body = await readBody(req);
 
@@ -178,44 +183,51 @@ async function api(req, res) {
   }
 
   // ── AI 内容流水线（DeepSeek）──────────────────────────────────────────
-  // 保存访谈逐字稿 → current.json；起草和评审走任务队列（脚本里调 DeepSeek）
-  if (req.url.startsWith('/api/interview')) {
-    const qa = (body.qa || []).filter(x => (x.q || '').trim() && (x.a || '').trim());
-    if (!(body.idea || '').trim()) return send(400, { error: '请填写选题' });
-    if (!qa.length) return send(400, { error: '请至少填写一组问答' });
-    const curPath = path.join(root, 'drafts', 'current.json');
-    let prev = {};
-    try { prev = JSON.parse(fs.readFileSync(curPath, 'utf8')); } catch {}
-    const cur = {
-      ...prev,
-      ideaId: body.ideaId || prev.ideaId || '',
-      idea: body.idea.trim(),
-      angle: (body.angle || '').trim(),
-      createdAt: prev.createdAt || new Date().toLocaleDateString('sv-SE'),
-      interview: { qa },
-    };
-    delete cur.council; // transcript changed → old review invalid
-    fs.writeFileSync(curPath, JSON.stringify(cur, null, 2));
-    enqueue('刷新面板数据', [['build_dashboard.mjs', '--lang', 'zh']]);
-    return send(200, { ok: true, qa: qa.length });
-  }
-
+  // 多篇草稿模型：drafts/index.json 按 ideaId 键控。起草/改稿/评审走任务队列。
   if (req.url.startsWith('/api/draft')) {
+    const ideaId = (body.ideaId || '').trim();
+    if (!ideaId) return send(400, { error: '缺少选题 id' });
     return send(200, enqueue('AI 生成草稿（DeepSeek）',
-      [['ai_draft.mjs'], ['build_dashboard.mjs', '--lang', 'zh']]));
+      [['ai_draft.mjs', ideaId], ['build_dashboard.mjs', '--lang', 'zh']]));
   }
 
   if (req.url.startsWith('/api/revise')) {
+    const ideaId = (body.ideaId || '').trim();
     const fb = (body.feedback || '').trim();
+    if (!ideaId) return send(400, { error: '缺少选题 id' });
     if (!fb) return send(400, { error: '请先填写修改意见' });
     fs.writeFileSync(path.join(root, 'drafts', '.revise-feedback.txt'), fb);
     return send(200, enqueue('AI 按意见改稿（DeepSeek）',
-      [['ai_revise.mjs'], ['build_dashboard.mjs', '--lang', 'zh']]));
+      [['ai_revise.mjs', ideaId], ['build_dashboard.mjs', '--lang', 'zh']]));
   }
 
   if (req.url.startsWith('/api/council')) {
+    const ideaId = (body.ideaId || '').trim();
+    if (!ideaId) return send(400, { error: '缺少选题 id' });
     return send(200, enqueue('评审团评审（6 位评委）',
-      [['ai_council.mjs'], ['build_dashboard.mjs', '--lang', 'zh']]));
+      [['ai_council.mjs', ideaId], ['build_dashboard.mjs', '--lang', 'zh']]));
+  }
+
+  // ── 素材库 ────────────────────────────────────────────────────────────
+  if (req.url.startsWith('/api/materials')) {
+    const matPath = path.join(root, 'materials', 'materials.json');
+    const list = fs.existsSync(matPath) ? JSON.parse(fs.readFileSync(matPath, 'utf8')) : [];
+    // POST：手动导入或浏览器插件收录
+    const title = (body.title || '').trim();
+    const url = (body.url || '').trim();
+    if (!title && !url) return send(400, { error: '标题和链接至少填一个' });
+    list.unshift({
+      id: 'm' + Date.now(),
+      title: title || url,
+      url,
+      note: (body.note || '').trim(),
+      type: body.type || 'article',
+      source: body.source || 'manual',
+      createdAt: new Date().toISOString(),
+    });
+    fs.writeFileSync(matPath, JSON.stringify(list, null, 2));
+    enqueue('刷新面板数据', [['build_dashboard.mjs', '--lang', 'zh']]);
+    return send(200, { ok: true, total: list.length });
   }
 
   send(404, { error: 'unknown api' });
