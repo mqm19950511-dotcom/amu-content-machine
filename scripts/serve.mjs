@@ -67,7 +67,9 @@ async function transcribe(req, res) {
 }
 
 const cors = () => ({ 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type' });
+  'Access-Control-Allow-Headers': 'Content-Type',
+  // 让浏览器扩展/secure 页面可以访问本机 localhost（Chrome Private Network Access）
+  'Access-Control-Allow-Private-Network': 'true' });
 
 // ── Self-serve pipeline jobs ────────────────────────────────────────────────
 // One job at a time (TikHub rate limits make parallel pulls counterproductive).
