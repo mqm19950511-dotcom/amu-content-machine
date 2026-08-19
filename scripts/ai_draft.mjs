@@ -11,6 +11,8 @@ import path from 'node:path';
 const root = path.resolve(import.meta.dirname, '..');
 const ideaId = (process.argv[2] || '').trim();
 if (!ideaId) { console.error('✗ 缺少 ideaId 参数'); process.exit(1); }
+const MODELS = ['deepseek-v4-flash', 'deepseek-v4-pro'];
+const model = MODELS.includes(process.argv[3]) ? process.argv[3] : 'deepseek-v4-flash';
 
 function apiKey() {
   if (process.env.DEEPSEEK_API_KEY) return process.env.DEEPSEEK_API_KEY.trim();
@@ -58,7 +60,7 @@ const r = await fetch('https://api.deepseek.com/v1/chat/completions', {
   method: 'POST',
   headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    model: 'deepseek-v4-flash',
+    model,
     messages: [
       { role: 'system', content: rules },
       { role: 'user', content: userMsg },

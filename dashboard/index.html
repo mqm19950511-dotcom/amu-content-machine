@@ -466,6 +466,8 @@
       <p class="sub">三源合一：你的账号内容 + 小红书创作者爆款 + 小红书 素材库，借鉴爆款的写作方式/结构/情绪生成选题。</p></div>
     <div class="panel" style="margin-bottom:16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
       <button class="btn" id="or-run">🔄 重新生成灵感库</button>
+      <label style="font-size:13px;color:var(--muted)">模型：</label>
+      <select id="or-model" style="padding:8px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:var(--card);color:var(--ink)"></select>
       <span class="adm-msg" id="or-msg"></span>
     </div>
     <div id="vault-body"></div>
@@ -479,6 +481,8 @@
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px">
         <label style="font-size:13px;color:var(--muted)">选题：</label>
         <select id="dr-idea" style="padding:8px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:var(--card);color:var(--ink);max-width:320px"></select>
+        <label style="font-size:13px;color:var(--muted)">模型：</label>
+        <select id="dr-model" style="padding:8px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:var(--card);color:var(--ink)"></select>
         <button class="btn" id="dr-gen">✨ AI 生成草稿</button>
         <span class="adm-msg" id="dr-gen-msg"></span>
       </div>
@@ -503,6 +507,8 @@
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <label style="font-size:13px;color:var(--muted)">选题：</label>
         <select id="cc-idea" style="padding:8px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:var(--card);color:var(--ink);max-width:320px"></select>
+        <label style="font-size:13px;color:var(--muted)">模型：</label>
+        <select id="cc-model" style="padding:8px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:var(--card);color:var(--ink)"></select>
         <button class="btn" id="cc-run">⭐ 开始评审</button>
         <span class="adm-msg" id="cc-run-msg"></span>
       </div>
@@ -1120,7 +1126,20 @@
   fillIdeaSelect($('#dr-idea'),'选择选题…');
   fillIdeaSelect($('#cc-idea'),'选择选题…');
 
-  $('#or-run').onclick=()=> runAiJob('/api/oracle','#or-msg');
+  /* ══ 模型下拉（每板块可选模型，记住选择） ══ */
+  const MODEL_OPTS=[['deepseek-v4-flash','V4 Flash（快）'],['deepseek-v4-pro','V4 Pro（强）']];
+  function fillModel(sel, def){
+    if(!sel) return;
+    const saved=localStorage.getItem('cm.model.'+sel.id);
+    const cur=MODEL_OPTS.some(m=>m[0]===saved)?saved:def;
+    sel.innerHTML=MODEL_OPTS.map(m=>`<option value="${m[0]}" ${m[0]===cur?'selected':''}>${m[1]}</option>`).join('');
+    sel.onchange=()=>localStorage.setItem('cm.model.'+sel.id, sel.value);
+  }
+  fillModel($('#dr-model'),'deepseek-v4-flash');
+  fillModel($('#cc-model'),'deepseek-v4-pro');
+  fillModel($('#or-model'),'deepseek-v4-pro');
+
+  $('#or-run').onclick=()=> runAiJob('/api/oracle','#or-msg',{model:$('#or-model').value});
 
 
   /* ══ Draft ══ */
@@ -1145,13 +1164,13 @@
   }
   $('#dr-gen').onclick=()=>{
     if(!window.__curIdea){ $('#dr-gen-msg').textContent='✗ 先在上方选择选题'; return; }
-    runAiJob('/api/draft','#dr-gen-msg',{ideaId:window.__curIdea});
+    runAiJob('/api/draft','#dr-gen-msg',{ideaId:window.__curIdea,model:$('#dr-model').value});
   };
   $('#dr-revise-btn').onclick=()=>{
     const fb=$('#dr-feedback').value.trim();
     if(!fb){ $('#dr-revise-msg').textContent='✗ 先写点修改意见'; return; }
     if(!window.__curIdea){ $('#dr-revise-msg').textContent='✗ 先在上方选择选题'; return; }
-    runAiJob('/api/revise','#dr-revise-msg',{ideaId:window.__curIdea,feedback:fb});
+    runAiJob('/api/revise','#dr-revise-msg',{ideaId:window.__curIdea,feedback:fb,model:$('#dr-model').value});
   };
   $('#dr-revise-council').onclick=()=>{
     const d=(ME&&ME.drafts&&ME.drafts[window.__curIdea])||{};
@@ -1162,7 +1181,7 @@
     }).filter(Boolean).join('\n\n');
     const fb='请逐条落实以下评审团意见（没被点名的部分保持原样）：\n\n'+items;
     $('#dr-feedback').value=fb;
-    runAiJob('/api/revise','#dr-revise-msg',{ideaId:window.__curIdea,feedback:fb});
+    runAiJob('/api/revise','#dr-revise-msg',{ideaId:window.__curIdea,feedback:fb,model:$('#dr-model').value});
   };
 
   function renderDraft(){
@@ -1184,7 +1203,7 @@
     if(!window.__curIdea){ $('#cc-run-msg').textContent='✗ 先在上方选择选题'; return; }
     const d=(ME&&ME.drafts&&ME.drafts[window.__curIdea])||{};
     if(!d.text){ $('#cc-run-msg').textContent='✗ 这个选题还没有草稿——先到「草稿」页生成'; return; }
-    runAiJob('/api/council','#cc-run-msg',{ideaId:window.__curIdea});
+    runAiJob('/api/council','#cc-run-msg',{ideaId:window.__curIdea,model:$('#cc-model').value});
   };
 
   function renderCouncil(){

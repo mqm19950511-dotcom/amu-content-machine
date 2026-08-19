@@ -29,6 +29,7 @@ const port = +(process.argv[2] || 8420);
 const host = process.argv[3] || '127.0.0.1';
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css',
                 '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg' };
+const MODELS = ['deepseek-v4-flash', 'deepseek-v4-pro'];
 
 function mistralKey() {
   if (process.env.MISTRAL_API_KEY) return process.env.MISTRAL_API_KEY.trim();
@@ -242,8 +243,10 @@ async function api(req, res) {
   if (req.url.startsWith('/api/draft')) {
     const ideaId = (body.ideaId || '').trim();
     if (!ideaId) return send(400, { error: '缺少选题 id' });
+    const args = ['ai_draft.mjs', ideaId];
+    if (MODELS.includes(body.model)) args.push(body.model);
     return send(200, enqueue('AI 生成草稿（DeepSeek）',
-      [['ai_draft.mjs', ideaId], ['build_dashboard.mjs', '--lang', 'zh']]));
+      [args, ['build_dashboard.mjs', '--lang', 'zh']]));
   }
 
   if (req.url.startsWith('/api/revise')) {
@@ -252,20 +255,26 @@ async function api(req, res) {
     if (!ideaId) return send(400, { error: '缺少选题 id' });
     if (!fb) return send(400, { error: '请先填写修改意见' });
     fs.writeFileSync(path.join(root, 'drafts', '.revise-feedback.txt'), fb);
+    const args = ['ai_revise.mjs', ideaId];
+    if (MODELS.includes(body.model)) args.push(body.model);
     return send(200, enqueue('AI 按意见改稿（DeepSeek）',
-      [['ai_revise.mjs', ideaId], ['build_dashboard.mjs', '--lang', 'zh']]));
+      [args, ['build_dashboard.mjs', '--lang', 'zh']]));
   }
 
   if (req.url.startsWith('/api/council')) {
     const ideaId = (body.ideaId || '').trim();
     if (!ideaId) return send(400, { error: '缺少选题 id' });
+    const args = ['ai_council.mjs', ideaId];
+    if (MODELS.includes(body.model)) args.push(body.model);
     return send(200, enqueue('评审团评审（6 位评委）',
-      [['ai_council.mjs', ideaId], ['build_dashboard.mjs', '--lang', 'zh']]));
+      [args, ['build_dashboard.mjs', '--lang', 'zh']]));
   }
 
   if (req.url.startsWith('/api/oracle')) {
+    const args = ['ai_oracle.mjs'];
+    if (MODELS.includes(body.model)) args.push(body.model);
     return send(200, enqueue('生成灵感库（三源合一）',
-      [['ai_oracle.mjs'], ['build_dashboard.mjs', '--lang', 'zh']]));
+      [args, ['build_dashboard.mjs', '--lang', 'zh']]));
   }
 
   // ── 素材库 ────────────────────────────────────────────────────────────

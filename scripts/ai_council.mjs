@@ -8,6 +8,8 @@ import path from 'node:path';
 const root = path.resolve(import.meta.dirname, '..');
 const ideaId = (process.argv[2] || '').trim();
 if (!ideaId) { console.error('✗ 缺少 ideaId 参数'); process.exit(1); }
+const MODELS = ['deepseek-v4-flash', 'deepseek-v4-pro'];
+const model = MODELS.includes(process.argv[3]) ? process.argv[3] : 'deepseek-v4-pro';
 
 function apiKey() {
   if (process.env.DEEPSEEK_API_KEY) return process.env.DEEPSEEK_API_KEY.trim();
@@ -45,7 +47,7 @@ async function judge({ name, prompt }) {
     method: 'POST',
     headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      model: 'deepseek-v4-pro',
+      model,
       messages: [
         { role: 'system', content: prompt },
         { role: 'user', content: `以下是要评审的草稿（选题：${cur.idea}）：\n\n${cur.text}` },

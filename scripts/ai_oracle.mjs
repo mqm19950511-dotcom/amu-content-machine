@@ -24,6 +24,8 @@ function apiKey() {
 }
 const key = apiKey();
 if (!key) { console.error('✗ 找不到 DEEPSEEK_API_KEY（.env.local）'); process.exit(1); }
+const MODELS = ['deepseek-v4-flash', 'deepseek-v4-pro'];
+const model = MODELS.includes(process.argv[2]) ? process.argv[2] : 'deepseek-v4-pro';
 
 const promptPath = path.join(root, 'prompts', 'oracle.md');
 if (!fs.existsSync(promptPath)) { console.error('✗ 找不到 prompts/oracle.md'); process.exit(1); }
@@ -88,7 +90,7 @@ const r = await fetch('https://api.deepseek.com/v1/chat/completions', {
   method: 'POST',
   headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
   body: JSON.stringify({
-    model: 'deepseek-v4-pro',
+    model,
     messages: [
       { role: 'system', content: rules },
       { role: 'user', content: userMsg },
