@@ -953,6 +953,21 @@
     }
     $('#cd-back').onclick=()=>{location.hash='creators'};
     window.__showCreator=showCreator;
+  /* ══ 共享：选题下拉 + 当前选题 ══ */
+  const IDEAS=(SCAN&&SCAN.vault&&SCAN.vault.ideas)||[];
+  function setCurIdea(id){ window.__curIdea=id||''; try{ localStorage.setItem('cm.curIdea', window.__curIdea); }catch(e){} }
+  (function(){
+    const saved=localStorage.getItem('cm.curIdea');
+    if(window.__curIdea) return;                                  // 本次会话已设（如从灵感库跳转）
+    if(saved && IDEAS.some(v=>v.id===saved)){ window.__curIdea=saved; return; }  // 恢复上次选中的选题
+    window.__curIdea=(IDEAS[0]&&IDEAS[0].id)||'';                 // 默认第一个
+  })();
+  function fillIdeaSelect(sel, placeholder){
+    if(!sel)return;
+    sel.innerHTML='<option value="">'+placeholder+'</option>'+
+      IDEAS.map(v=>`<option value="${esc(v.id)}" ${v.id===window.__curIdea?'selected':''}>${esc(v.title)}</option>`).join('');
+  }
+
     /* hash routing: #creators, #creator=<id> — shareable deep links */
     function route(){
       const h=location.hash.slice(1);
@@ -1118,20 +1133,6 @@
     $('#mat-save').disabled=false;
   };
 
-  /* ══ 共享：选题下拉 + 当前选题 ══ */
-  const IDEAS=(SCAN&&SCAN.vault&&SCAN.vault.ideas)||[];
-  function setCurIdea(id){ window.__curIdea=id||''; try{ localStorage.setItem('cm.curIdea', window.__curIdea); }catch(e){} }
-  (function(){
-    const saved=localStorage.getItem('cm.curIdea');
-    if(window.__curIdea) return;                                  // 本次会话已设（如从灵感库跳转）
-    if(saved && IDEAS.some(v=>v.id===saved)){ window.__curIdea=saved; return; }  // 恢复上次选中的选题
-    window.__curIdea=(IDEAS[0]&&IDEAS[0].id)||'';                 // 默认第一个
-  })();
-  function fillIdeaSelect(sel, placeholder){
-    if(!sel)return;
-    sel.innerHTML='<option value="">'+placeholder+'</option>'+
-      IDEAS.map(v=>`<option value="${esc(v.id)}" ${v.id===window.__curIdea?'selected':''}>${esc(v.title)}</option>`).join('');
-  }
   fillIdeaSelect($('#dr-idea'),'选择选题…');
   fillIdeaSelect($('#cc-idea'),'选择选题…');
 
