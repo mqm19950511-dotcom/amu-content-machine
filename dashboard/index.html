@@ -1060,7 +1060,7 @@
     $('#vault-body').addEventListener('click',e=>{
       const b=e.target.closest('.vgo');if(!b)return;
       const idea=V.ideas[+b.dataset.vi];
-      if(idea && idea.id){ window.__curIdea=idea.id; }
+      if(idea && idea.id){ setCurIdea(idea.id); }
       location.hash='draft';
       if(window.__openDraft) window.__openDraft();
     });
@@ -1117,7 +1117,13 @@
 
   /* ══ 共享：选题下拉 + 当前选题 ══ */
   const IDEAS=(SCAN&&SCAN.vault&&SCAN.vault.ideas)||[];
-  window.__curIdea = window.__curIdea || (IDEAS[0]&&IDEAS[0].id) || '';
+  function setCurIdea(id){ window.__curIdea=id||''; try{ localStorage.setItem('cm.curIdea', window.__curIdea); }catch(e){} }
+  (function(){
+    const saved=localStorage.getItem('cm.curIdea');
+    if(window.__curIdea) return;                                  // 本次会话已设（如从灵感库跳转）
+    if(saved && IDEAS.some(v=>v.id===saved)){ window.__curIdea=saved; return; }  // 恢复上次选中的选题
+    window.__curIdea=(IDEAS[0]&&IDEAS[0].id)||'';                 // 默认第一个
+  })();
   function fillIdeaSelect(sel, placeholder){
     if(!sel)return;
     sel.innerHTML='<option value="">'+placeholder+'</option>'+
@@ -1195,7 +1201,7 @@
     $('#draft-body').innerHTML=`<div class="draftbox"><h3>选题：${esc(d.idea||iid)}${ver}</h3>${esc(d.text||'')}</div>`;
   }
   if(ME)renderDraft();
-  $('#dr-idea').onchange=()=>{ window.__curIdea=$('#dr-idea').value; renderDraft(); };
+  $('#dr-idea').onchange=()=>{ setCurIdea($('#dr-idea').value); renderDraft(); };
   window.__openDraft=()=>{ fillIdeaSelect($('#dr-idea'),'选择选题…'); fillIdeaSelect($('#cc-idea'),'选择选题…'); renderDraft(); };
 
   /* ══ Council ══ */
@@ -1216,7 +1222,7 @@
         <div class="cbody">${esc(r.comment||'')}</div></div>`).join('')}</div>`;
   }
   if(ME)renderCouncil();
-  $('#cc-idea').onchange=()=>{ window.__curIdea=$('#cc-idea').value; renderCouncil(); };
+  $('#cc-idea').onchange=()=>{ setCurIdea($('#cc-idea').value); renderCouncil(); };
 
   $('#dlg-x').onclick=()=>$('#dlg').close();
   $('#dlg-c').onclick=async()=>{try{await navigator.clipboard.writeText($('#dlg-t').value);$('#dlg-c').textContent='已复制';setTimeout(()=>$('#dlg-c').textContent='复制',1400)}catch{$('#dlg-t').select()}};
