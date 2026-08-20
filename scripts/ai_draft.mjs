@@ -1,6 +1,6 @@
-// Generate a draft for ONE idea via DeepSeek, grounded in the voice guide.
+// Generate a draft for ONE idea via DeepSeek.
 // Reads drafts/index.json (keyed by ideaId), vault/vault.json (idea title),
-// voice/voice-guide.md (writing style), prompts/draft.md (rules).
+// prompts/draft.md (rules). No voice guide / interview material.
 //
 // Usage: node scripts/ai_draft.mjs <ideaId>
 // Env: DEEPSEEK_API_KEY (or .env.local at repo root)
