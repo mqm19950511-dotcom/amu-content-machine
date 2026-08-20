@@ -963,6 +963,9 @@
       document.querySelectorAll('.view').forEach(v=>v.classList.remove('on'));
       $('#v-'+view).classList.add('on');
       const nb=$('#nav button[data-v='+view+']');if(nb)nb.setAttribute('aria-current','page');
+      // 进入草稿/评审团时，把下拉同步到当前选中的选题（跨板块联动）
+      if(view==='draft'){ fillIdeaSelect($('#dr-idea'),'选择选题…'); renderDraft(); }
+      if(view==='council'){ fillIdeaSelect($('#cc-idea'),'选择选题…'); renderCouncil(); }
     }
     window.addEventListener('hashchange',route);
     // open-cr links set the hash instead of calling directly
