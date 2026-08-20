@@ -1,6 +1,6 @@
-// Generate a draft for ONE idea via DeepSeek.
+// Generate a draft for ONE idea via DeepSeek, grounded in the voice guide.
 // Reads drafts/index.json (keyed by ideaId), vault/vault.json (idea title),
-// prompts/draft.md (rules). No voice guide / interview material.
+// voice/voice-guide.md (writing style), prompts/draft.md (rules).
 //
 // Usage: node scripts/ai_draft.mjs <ideaId>
 // Env: DEEPSEEK_API_KEY (or .env.local at repo root)
@@ -35,6 +35,14 @@ try {
   if (it) { idea = it.title || it.idea || ideaId; angle = it.angle || ''; }
 } catch {}
 
+// voice guide (may be empty / still a template)
+let voice = '';
+const vg = path.join(root, 'voice', 'voice-guide.md');
+if (fs.existsSync(vg)) {
+  const t = fs.readFileSync(vg, 'utf8');
+  if (!/NOT YET GENERATED/.test(t)) voice = t;
+}
+
 const promptPath = path.join(root, 'prompts', 'draft.md');
 if (!fs.existsSync(promptPath)) { console.error('✗ 找不到 prompts/draft.md——先跑 ./scripts/init.sh'); process.exit(1); }
 const rules = fs.readFileSync(promptPath, 'utf8');
@@ -42,6 +50,7 @@ const rules = fs.readFileSync(promptPath, 'utf8');
 const userMsg = [
   `## 选题\n${idea}`,
   angle ? `## 角度\n${angle}` : '',
+  voice ? `## 声音指南（务必贴合这个写作风格）\n${voice}` : '## 声音指南\n（未提供——用自然、口语化的中文短句，治愈系口吻）',
   `## 要求\n按上方起草规则，为这个选题写一版完整草稿。没有访谈材料，所有内容围绕选题本身展开，不要编造具体数字或故事。`,
 ].filter(Boolean).join('\n\n');
 
