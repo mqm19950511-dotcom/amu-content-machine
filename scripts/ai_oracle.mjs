@@ -122,9 +122,10 @@ if (!Array.isArray(ideas) || !ideas.length) { console.error('✗ 没有解析到
 // 避免每次全量重写都用 v01-v15 导致草稿/评审按 id 错位。
 const vaultPath = path.join(root, 'vault', 'vault.json');
 const vault = fs.existsSync(vaultPath) ? JSON.parse(fs.readFileSync(vaultPath, 'utf8')) : {};
-const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+// 时间戳到秒（YYYYMMDDHHMMSS），确保同一天内多次刷新也不会撞编号
+const ts = new Date().toISOString().slice(0, 19).replace(/[-:T]/g, '');
 vault.ideas = ideas.slice(0, 15).map((v, i) => ({
-  id: `v${dateStr}-${String(i + 1).padStart(2, '0')}`,
+  id: `v${ts}-${String(i + 1).padStart(2, '0')}`,
   score: Math.round((+v.score || 0) * 10) / 10,
   type: String(v.type || '常青').includes('热点') ? '热点' : '常青',
   source: v.source || 'track',
