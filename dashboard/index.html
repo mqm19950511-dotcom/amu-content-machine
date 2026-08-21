@@ -285,6 +285,9 @@
   /* draft + council */
   .draftbox{background:var(--card);border-radius:var(--r);padding:24px;max-width:680px;white-space:pre-wrap;font-size:15px;line-height:1.75}
   .draftbox h3{font-size:13px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:14px;font-weight:600}
+  .dhist{padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--line);font-size:14px;color:var(--ink)}
+  .dhist:hover{background:var(--card)}
+  .dhist .dhmeta{font-size:11px;color:var(--muted);margin-left:8px}
   .cscore{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
   @media(max-width:820px){.cscore{grid-template-columns:1fr}}
   .creview{background:var(--card);border-radius:14px;padding:16px}
@@ -483,6 +486,8 @@
         <select id="dr-idea" style="padding:8px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:var(--card);color:var(--ink);max-width:320px"></select>
         <label style="font-size:13px;color:var(--muted)">模型：</label>
         <select id="dr-model" style="padding:8px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:var(--card);color:var(--ink)"></select>
+        <label style="font-size:13px;color:var(--muted)">借鉴博主：</label>
+        <select id="dr-blogger" style="padding:8px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:var(--card);color:var(--ink)"></select>
         <button class="btn" id="dr-gen">✨ AI 生成草稿</button>
         <span class="adm-msg" id="dr-gen-msg"></span>
       </div>
@@ -496,6 +501,10 @@
         </div>
       </div>
     </div>
+    <div class="panel" style="margin-bottom:16px">
+      <div style="font-size:13px;color:var(--muted);margin-bottom:8px">📚 历史草稿（点击查看，灵感库刷新也不丢）</div>
+      <div id="draft-history"></div>
+    </div>
     <div id="draft-body"></div>
   </section>
 
@@ -505,7 +514,7 @@
       <p class="sub">6位评委独立打分（1-10）。平均低于9触发修改。含一位「AI味过敏师」有一票否决权。评审的是下方选中的那篇草稿。</p></div>
     <div class="panel" style="margin-bottom:16px">
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <label style="font-size:13px;color:var(--muted)">选题：</label>
+        <label style="font-size:13px;color:var(--muted)">草稿：</label>
         <select id="cc-idea" style="padding:8px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:var(--card);color:var(--ink);max-width:320px"></select>
         <label style="font-size:13px;color:var(--muted)">模型：</label>
         <select id="cc-model" style="padding:8px;border:1px solid var(--line);border-radius:10px;font-size:14px;background:var(--card);color:var(--ink)"></select>
@@ -964,8 +973,38 @@
   })();
   function fillIdeaSelect(sel, placeholder){
     if(!sel)return;
+    // 当前灵感库选题 + 历史草稿（草稿还在但选题已不在当前灵感库）
+    const opts = IDEAS.map(v=>({id:v.id, title:v.title, hist:false}));
+    const drafts=(ME&&ME.drafts)||{};
+    for(const id of Object.keys(drafts)){
+      if(IDEAS.some(v=>v.id===id)) continue;   // 已在当前灵感库，跳过
+      opts.push({id, title:(drafts[id]&&drafts[id].idea)||('历史草稿 '+id), hist:true});
+    }
     sel.innerHTML='<option value="">'+placeholder+'</option>'+
-      IDEAS.map(v=>`<option value="${esc(v.id)}" ${v.id===window.__curIdea?'selected':''}>${esc(v.title)}</option>`).join('');
+      opts.map(o=>`<option value="${esc(o.id)}" ${o.id===window.__curIdea?'selected':''}>${o.hist?'📁 ':''}${esc(o.title)}${o.hist?'（历史）':''}</option>`).join('');
+  }
+  function fillBloggerSelect(){
+    const sel=$('#dr-blogger');
+    if(!sel)return;
+    const styles=(SCAN&&SCAN.styles)||[];
+    const saved=localStorage.getItem('cm.blogger.'+sel.id);
+    const cur=styles.some(s=>s.name===saved)?saved:'';
+    sel.innerHTML='<option value="">自动（跟随选题风格提示）</option>'+
+      styles.map(s=>`<option value="${esc(s.name)}" ${s.name===cur?'selected':''}>${esc(s.name)}${s.tags&&s.tags.length?'（'+esc(s.tags.slice(0,2).join('·'))+'）':''}</option>`).join('');
+    sel.onchange=()=>localStorage.setItem('cm.blogger.'+sel.id, sel.value);
+  }
+  function fillCouncilDraftSelect(){
+    const sel=$('#cc-idea');
+    if(!sel)return;
+    const drafts=(ME&&ME.drafts)||{};
+    const keys=Object.keys(drafts).filter(k=>drafts[k]&&drafts[k].text);
+    if(!keys.length){ sel.innerHTML='<option value="">暂无草稿——先去「草稿」页生成</option>'; return; }
+    keys.sort((a,b)=>String(drafts[b].updatedAt||'').localeCompare(String(drafts[a].updatedAt||'')));
+    const cur=window.__curIdea;
+    sel.innerHTML=keys.map(k=>{
+      const d=drafts[k];
+      return `<option value="${esc(k)}" ${k===cur?'selected':''}>${esc(d.idea||k)}</option>`;
+    }).join('');
   }
 
     /* hash routing: #creators, #creator=<id> — shareable deep links */
@@ -979,8 +1018,8 @@
       $('#v-'+view).classList.add('on');
       const nb=$('#nav button[data-v='+view+']');if(nb)nb.setAttribute('aria-current','page');
       // 进入草稿/评审团时，把下拉同步到当前选中的选题（跨板块联动）
-      if(view==='draft'){ fillIdeaSelect($('#dr-idea'),'选择选题…'); renderDraft(); }
-      if(view==='council'){ fillIdeaSelect($('#cc-idea'),'选择选题…'); renderCouncil(); }
+      if(view==='draft'){ fillIdeaSelect($('#dr-idea'),'选择选题…'); fillBloggerSelect(); renderDraft(); renderDraftHistory(); }
+      if(view==='council'){ fillCouncilDraftSelect(); renderCouncil(); }
     }
     window.addEventListener('hashchange',route);
     // open-cr links set the hash instead of calling directly
@@ -1134,7 +1173,7 @@
   };
 
   fillIdeaSelect($('#dr-idea'),'选择选题…');
-  fillIdeaSelect($('#cc-idea'),'选择选题…');
+  fillCouncilDraftSelect();
 
   /* ══ 模型下拉（每板块可选模型，记住选择） ══ */
   const MODEL_OPTS=[['deepseek-v4-flash','V4 Flash（快）'],['deepseek-v4-pro','V4 Pro（强）']];
@@ -1174,7 +1213,7 @@
   }
   $('#dr-gen').onclick=()=>{
     if(!window.__curIdea){ $('#dr-gen-msg').textContent='✗ 先在上方选择选题'; return; }
-    runAiJob('/api/draft','#dr-gen-msg',{ideaId:window.__curIdea,model:$('#dr-model').value});
+    runAiJob('/api/draft','#dr-gen-msg',{ideaId:window.__curIdea,model:$('#dr-model').value,blogger:$('#dr-blogger').value});
   };
   $('#dr-revise-btn').onclick=()=>{
     const fb=$('#dr-feedback').value.trim();
@@ -1204,9 +1243,29 @@
     const ver=d.version?`<span style="font-size:11px;color:var(--muted);margin-left:8px">${esc(d.version)}</span>`:'';
     $('#draft-body').innerHTML=`<div class="draftbox"><h3>选题：${esc(d.idea||iid)}${ver}</h3>${esc(d.text||'')}</div>`;
   }
-  if(ME)renderDraft();
+  function renderDraftHistory(){
+    const box=$('#draft-history');
+    if(!box)return;
+    const drafts=(ME&&ME.drafts)||{};
+    const keys=Object.keys(drafts).filter(k=>drafts[k]&&drafts[k].text);
+    if(!keys.length){ box.innerHTML='<div style="font-size:13px;color:var(--muted)">还没有草稿。</div>'; return; }
+    keys.sort((a,b)=>String(drafts[b].updatedAt||'').localeCompare(String(drafts[a].updatedAt||'')));
+    box.innerHTML=keys.map(k=>{
+      const d=drafts[k];
+      const date=String(d.updatedAt||'').slice(0,10);
+      return `<div class="dhist" data-id="${esc(k)}">${esc(d.idea||k)}<span class="dhmeta">${esc(d.version||'')} · ${esc(date)}</span></div>`;
+    }).join('');
+  }
+  function showDraftById(id){
+    const d=(ME&&ME.drafts&&ME.drafts[id])||null;
+    if(!d||!d.text){$('#draft-body').innerHTML=`<div class="empty-big"><b>这篇草稿没有内容。</b></div>`;return;}
+    const ver=d.version?`<span style="font-size:11px;color:var(--muted);margin-left:8px">${esc(d.version)}</span>`:'';
+    $('#draft-body').innerHTML=`<div class="draftbox"><h3>选题：${esc(d.idea||id)}${ver}</h3>${esc(d.text||'')}</div>`;
+  }
+  if(ME){renderDraft(); renderDraftHistory();}
   $('#dr-idea').onchange=()=>{ setCurIdea($('#dr-idea').value); renderDraft(); };
-  window.__openDraft=()=>{ fillIdeaSelect($('#dr-idea'),'选择选题…'); fillIdeaSelect($('#cc-idea'),'选择选题…'); renderDraft(); };
+  $('#draft-history').onclick=e=>{ const o=e.target.closest('.dhist'); if(o) showDraftById(o.dataset.id); };
+  window.__openDraft=()=>{ fillIdeaSelect($('#dr-idea'),'选择选题…'); fillCouncilDraftSelect(); renderDraft(); renderDraftHistory(); };
 
   /* ══ Council ══ */
   $('#cc-run').onclick=()=>{
