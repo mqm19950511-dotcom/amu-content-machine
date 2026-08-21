@@ -70,9 +70,11 @@ const r = await fetch('https://api.deepseek.com/v1/chat/completions', {
       { role: 'user', content: userMsg },
     ],
     temperature: 0.7,
-    max_tokens: 8000,
+    max_tokens: 32000,
   }),
-  signal: AbortSignal.timeout(180000),
+  // V4 Pro 是推理模型，改稿要读完草稿+所有评审意见再重写，
+  // 单次输出长，需要更长 timeout（之前 180s 在 Pro 下稳定超时）
+  signal: AbortSignal.timeout(420000),
 });
 const j = await r.json();
 if (!r.ok) { console.error('✗ DeepSeek 报错：', JSON.stringify(j).slice(0, 500)); process.exit(1); }
