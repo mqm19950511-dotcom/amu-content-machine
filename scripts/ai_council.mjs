@@ -43,31 +43,46 @@ const judges = parts.slice(1).map(sec => {
 console.log(`→ 评审团开庭（[${ideaId}] ${cur.idea}）：${judges.map(x => x.name).join(' / ')}`);
 
 async function judge({ name, prompt }) {
-  const r = await fetch('https://api.deepseek.com/v1/chat/completions', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model,
-      messages: [
-        { role: 'system', content: prompt },
-        { role: 'user', content: `以下是要评审的草稿（选题：${cur.idea}）：\n\n${cur.text}` },
-      ],
-      temperature: 0.3,
-      max_tokens: 3000,
-    }),
-    signal: AbortSignal.timeout(180000),
-  });
-  const j = await r.json();
-  if (!r.ok) throw new Error(`${name}: DeepSeek 报错 ${JSON.stringify(j).slice(0, 200)}`);
-  const out = j.choices?.[0]?.message?.content || '';
-  const grab = k => (out.match(new RegExp(`${k}:\\s*(.+)`)) || [])[1]?.trim() || '';
-  const score = Math.min(10, Math.max(1, parseInt(grab('SCORE'), 10) || 0));
+  // V4 Pro 是推理模型，偶尔会把 content 返回空（思考吃光额度/并发下不稳定）。
+  // 重试最多 3 次；content 空时兜底用 reasoning_content 尾部；仍失败则记 0 分（不计入平均）。
+  let out = '';
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      const r = await fetch('https://api.deepseek.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model,
+          messages: [
+            { role: 'system', content: prompt },
+            { role: 'user', content: `以下是要评审的草稿（选题：${cur.idea}）：\n\n${cur.text}` },
+          ],
+          temperature: 0.3,
+          max_tokens: 32000,
+        }),
+        signal: AbortSignal.timeout(300000),
+      });
+      const j = await r.json();
+      if (!r.ok) throw new Error(`DeepSeek 报错 ${JSON.stringify(j).slice(0, 200)}`);
+      const m = j.choices?.[0]?.message || {};
+      out = m.content || '';
+      if (!/SCORE/i.test(out) && m.reasoning_content) out = m.reasoning_content;
+      if (/SCORE/i.test(out)) break;
+    } catch (e) {
+      if (attempt === 3) { console.log(`  ${name}: ⚠ ${e.message}`); return { name, score: 0, comment: `评审失败：${e.message}` }; }
+    }
+    if (attempt < 3) await new Promise(r => setTimeout(r, 2000));
+  }
+  const grab = k => (out.match(new RegExp(`${k}\\s*[:：]\\s*(.+)`, 'i')) || [])[1]?.trim() || '';
+  const scoreRaw = grab('SCORE');
+  const score = scoreRaw ? Math.min(10, Math.max(1, parseInt(scoreRaw, 10) || 0)) : 0;
   const comment = [
     grab('STRONGEST') && `✦ 最强：${grab('STRONGEST')}`,
     grab('WEAKEST') && `✧ 最弱：${grab('WEAKEST')}`,
     grab('BLOCKING') && grab('BLOCKING') !== 'none' && `⛔ 必须改：${grab('BLOCKING')}`,
     grab('FIX') && `🛠 改法：${grab('FIX')}`,
   ].filter(Boolean).join('\n');
+  if (!score) { console.log(`  ${name}: ⚠ 无有效返回（已重试）`); return { name, score: 0, comment: '⚠ 该评委本次无有效返回' }; }
   console.log(`  ${name}: ${score}/10`);
   return { name, score, comment };
 }
@@ -83,4 +98,4 @@ fs.writeFileSync(idxPath, JSON.stringify(idx, null, 2));
 const valid = results.filter(x => x.score > 0);
 const avg = valid.length ? (valid.reduce((s, x) => s + x.score, 0) / valid.length).toFixed(1) : '?';
 const slop = results.find(x => x.name.includes('AI 味'));
-console.log(`✓ 评审完成，综合分 ${avg}/10${slop && slop.score < 7 ? '（AI 味鉴别师行使否决权，需改稿）' : ''}`);
+console.log(`✓ 评审完成，综合分 ${avg}/10${slop && slop.score > 0 && slop.score < 7 ? '（AI 味鉴别师行使否决权，需改稿）' : ''}`);
